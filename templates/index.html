@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Creative Director — Prompt Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 AI Creative Director</h1>
+            <p class="subtitle">Prompt Generator untuk Poster, Flyer, &amp; Materi Training</p>
+        </header>
+
+        <main>
+            <section class="form-section">
+                <h2>📋 Isi Detail Program</h2>
+                <p class="hint">Isi semua kolom yang relevan. Kolom yang tidak punya info bisa dikosongkan.</p>
+
+                <form id="promptForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="programName">Nama Program *</label>
+                            <input type="text" id="programName" name="programName" placeholder="contoh: Professional Data Analyst Certification" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="competency">Topik / Kompetensi *</label>
+                            <input type="text" id="competency" name="competency" placeholder="contoh: data analytics, SQL, dashboarding" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="programType">Jenis Program</label>
+                            <input type="text" id="programType" name="programType" placeholder="contoh: sertifikasi, corporate training, workshop">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="targetAudience">Target Audience *</label>
+                            <input type="text" id="targetAudience" name="targetAudience" placeholder="contoh: junior data analysts, 22-30 tahun">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="materialType">Jenis Materi</label>
+                            <select id="materialType" name="materialType">
+                                <option value="poster">Poster</option>
+                                <option value="flyer">Flyer</option>
+                                <option value="pamflet">Pamflet</option>
+                                <option value="banner">Banner / Social Media</option>
+                                <option value="social_media">Social Media Post</option>
+                                <option value="print">Print (A4/A5)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="platformFormat">Platform / Format</label>
+                            <input type="text" id="platformFormat" name="platformFormat" placeholder="contoh: Instagram feed 1080x1350, LinkedIn post 1200x627">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date">Tanggal Pelaksanaan</label>
+                            <input type="text" id="date" name="date" placeholder="contoh: 15-17 Agustus 2025, atau kosongkan jika tidak ada">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Lokasi Tempat</label>
+                            <input type="text" id="location" name="location" placeholder="contoh: Jakarta & Online, atau kosongkan jika tidak ada">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="price">Harga / Biaya</label>
+                            <input type="text" id="price" name="price" placeholder="contoh: Rp 2.500.000, Diskon 50%, atau kosongkan">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="brand">Brand / Nama Institusi</label>
+                            <input type="text" id="brand" name="brand" placeholder="contoh: TechCert Indonesia">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cta">CTA</label>
+                            <input type="text" id="cta" name="cta" placeholder="contoh: Daftar via WA 0812-3456-7890, Kunjungi techcert.id">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="brandColors">Warna Brand</label>
+                            <input type="text" id="brandColors" name="brandColors" placeholder="contoh: #1a73e8, #f9f9f9, atau kosongkan">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="logo">Deskripsi Logo</label>
+                            <input type="text" id="logo" name="logo" placeholder="contoh: Logo TechCert: huruf T biru elegan, atau kosongkan">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="programBenefits">Keunggulan Program (maks 3 poin)</label>
+                            <input type="text" id="programBenefits" name="programBenefits" placeholder="contoh: Sertifikat resmi BNSP, Materi praktik langsung, Trainer internasional">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-text">🚀 Generate Prompt</span>
+                        <span class="btn-loading" style="display: none;">⏳ Generating...</span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="output-section" id="outputSection" style="display: none;">
+                <h2>📤 Hasil Generate</h2>
+                <div class="output-container" id="outputContainer">
+                    <pre id="outputContent"></pre>
+                </div>
+                <button class="btn-secondary" id="copyBtn">📋 Salin ke Clipboard</button>
+                <button class="btn-secondary" id="resetBtn">🔄 Buat Baru</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://groq.com" target="_blank">Groq API</a> | AI Creative Director Skill</p>
+            <p class="small">Setup: buat file <code>.env</code> dengan <code>GROQ_API_KEY=sk-...</code></p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
