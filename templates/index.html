@@ -13,21 +13,28 @@
             <p class="subtitle">Prompt Generator untuk Poster, Flyer, &amp; Materi Training</p>
         </header>
 
+        <div id="demoBanner" class="banner banner-warning" style="display: none;">
+            ⚠️ <strong>Mode Demo aktif.</strong> Belum ada <code>GROQ_API_KEY</code>, jadi Anda melihat hasil contoh statis.
+            Buat file <code>.env</code> dengan API key untuk hasil yang akurat dari LLM.
+        </div>
+
         <main>
             <section class="form-section">
                 <h2>📋 Isi Detail Program</h2>
-                <p class="hint">Isi semua kolom yang relevan. Kolom yang tidak punya info bisa dikosongkan.</p>
+                <p class="hint">Isi semua kolom yang relevan. Kolom bertanda * wajib diisi.</p>
 
-                <form id="promptForm">
+                <form id="promptForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="programName">Nama Program *</label>
                             <input type="text" id="programName" name="programName" placeholder="contoh: Professional Data Analyst Certification" required>
+                            <small class="field-error" id="error-programName"></small>
                         </div>
 
                         <div class="form-group">
                             <label for="competency">Topik / Kompetensi *</label>
                             <input type="text" id="competency" name="competency" placeholder="contoh: data analytics, SQL, dashboarding" required>
+                            <small class="field-error" id="error-competency"></small>
                         </div>
 
                         <div class="form-group">
@@ -37,7 +44,8 @@
 
                         <div class="form-group">
                             <label for="targetAudience">Target Audience *</label>
-                            <input type="text" id="targetAudience" name="targetAudience" placeholder="contoh: junior data analysts, 22-30 tahun">
+                            <input type="text" id="targetAudience" name="targetAudience" placeholder="contoh: junior data analysts, 22-30 tahun" required>
+                            <small class="field-error" id="error-targetAudience"></small>
                         </div>
 
                         <div class="form-group">
@@ -106,12 +114,25 @@
             </section>
 
             <section class="output-section" id="outputSection" style="display: none;">
-                <h2>📤 Hasil Generate</h2>
-                <div class="output-container" id="outputContainer">
-                    <pre id="outputContent"></pre>
+                <div class="output-header">
+                    <h2>📤 Hasil Generate</h2>
+                    <div class="output-actions">
+                        <button class="btn-secondary" id="copyAllBtn">📋 Salin Semua</button>
+                        <button class="btn-secondary" id="resetBtn">🔄 Buat Baru</button>
+                    </div>
                 </div>
-                <button class="btn-secondary" id="copyBtn">📋 Salin ke Clipboard</button>
-                <button class="btn-secondary" id="resetBtn">🔄 Buat Baru</button>
+
+                <div class="banner banner-danger" id="errorBanner" style="display: none;"></div>
+
+                <div id="outputContainer"></div>
+            </section>
+
+            <section class="history-section" id="historySection" style="display: none;">
+                <div class="output-header">
+                    <h2>🕘 Riwayat Generate</h2>
+                    <button class="btn-secondary" id="clearHistoryBtn">🗑️ Hapus Riwayat</button>
+                </div>
+                <div id="historyContainer"></div>
             </section>
         </main>
 
