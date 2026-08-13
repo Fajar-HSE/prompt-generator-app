@@ -4,47 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Creative Director — Prompt Generator</title>
+    <meta name="description" content="Generator prompt untuk image-creation (poster, flyer, pamflet, banner, social media) berbasis AI Creative Director.">
+    <meta name="theme-color" content="#0f1117">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <a href="#promptForm" class="skip-link">Lewati ke form</a>
     <div class="container">
         <header>
-            <h1>🎨 AI Creative Director</h1>
+            <h1>AI Creative Director</h1>
             <p class="subtitle">Prompt Generator untuk Poster, Flyer, &amp; Materi Training</p>
         </header>
 
-        <div id="demoBanner" class="banner banner-warning" style="display: none;">
+        <div id="demoBanner" class="banner banner-warning" style="display: none;" role="status" aria-live="polite">
             ⚠️ <strong>Mode Demo aktif.</strong> Belum ada <code>GROQ_API_KEY</code>, jadi Anda melihat hasil contoh statis.
-            Buat file <code>.env</code> dengan API key untuk hasil yang akurat dari LLM.
+            Atur <code>GROQ_API_KEY</code> di environment variable project untuk hasil yang akurat dari LLM.
         </div>
 
         <main>
             <section class="form-section">
-                <h2>📋 Isi Detail Program</h2>
+                <h2>Isi Detail Program</h2>
                 <p class="hint">Isi semua kolom yang relevan. Kolom bertanda * wajib diisi.</p>
 
                 <form id="promptForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="programName">Nama Program *</label>
-                            <input type="text" id="programName" name="programName" placeholder="contoh: Professional Data Analyst Certification" required>
+                            <label for="programName" class="required">Nama Program</label>
+                            <input type="text" id="programName" name="programName" placeholder="contoh: Professional Data Analyst Certification…" autocomplete="off" required>
                             <small class="field-error" id="error-programName"></small>
                         </div>
 
                         <div class="form-group">
-                            <label for="competency">Topik / Kompetensi *</label>
-                            <input type="text" id="competency" name="competency" placeholder="contoh: data analytics, SQL, dashboarding" required>
+                            <label for="competency" class="required">Topik / Kompetensi</label>
+                            <input type="text" id="competency" name="competency" placeholder="contoh: data analytics, SQL, dashboarding…" autocomplete="off" required>
                             <small class="field-error" id="error-competency"></small>
                         </div>
 
                         <div class="form-group">
-                            <label for="programType">Jenis Program</label>
-                            <input type="text" id="programType" name="programType" placeholder="contoh: sertifikasi, corporate training, workshop">
+                            <label for="programType">Jenis Program (opsional)</label>
+                            <input type="text" id="programType" name="programType" placeholder="contoh: sertifikasi, corporate training, workshop…" autocomplete="off">
                         </div>
 
                         <div class="form-group">
-                            <label for="targetAudience">Target Audience *</label>
-                            <input type="text" id="targetAudience" name="targetAudience" placeholder="contoh: junior data analysts, 22-30 tahun" required>
+                            <label for="targetAudience" class="required">Target Audience</label>
+                            <input type="text" id="targetAudience" name="targetAudience" placeholder="contoh: junior data analysts, 22-30 tahun…" autocomplete="off" required>
                             <small class="field-error" id="error-targetAudience"></small>
                         </div>
 
@@ -86,51 +89,51 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="date">Tanggal Pelaksanaan</label>
-                            <input type="text" id="date" name="date" placeholder="contoh: 15-17 Agustus 2025, atau kosongkan jika tidak ada">
+                            <label for="date">Tanggal Pelaksanaan (opsional)</label>
+                            <input type="text" id="date" name="date" placeholder="contoh: 15-17 Agustus 2026, atau kosongkan…" autocomplete="off">
                         </div>
 
                         <div class="form-group">
-                            <label for="location">Lokasi Tempat</label>
-                            <input type="text" id="location" name="location" placeholder="contoh: Jakarta & Online, atau kosongkan jika tidak ada">
+                            <label for="location">Lokasi Tempat (opsional)</label>
+                            <input type="text" id="location" name="location" placeholder="contoh: Jakarta & Online, atau kosongkan…" autocomplete="off">
                         </div>
 
                         <div class="form-group">
-                            <label for="price">Harga / Biaya</label>
-                            <input type="text" id="price" name="price" placeholder="contoh: Rp 2.500.000, Diskon 50%, atau kosongkan">
+                            <label for="price">Harga / Biaya (opsional)</label>
+                            <input type="text" id="price" name="price" placeholder="contoh: Rp 2.500.000, Diskon 50%…" autocomplete="off" inputmode="text">
                         </div>
 
                         <div class="form-group">
-                            <label for="brand">Brand / Nama Institusi</label>
-                            <input type="text" id="brand" name="brand" placeholder="contoh: TechCert Indonesia">
+                            <label for="brand">Brand / Nama Institusi (opsional)</label>
+                            <input type="text" id="brand" name="brand" placeholder="contoh: TechCert Indonesia…" autocomplete="organization">
                         </div>
 
                         <div class="form-group">
-                            <label for="cta">CTA</label>
-                            <input type="text" id="cta" name="cta" placeholder="contoh: Daftar via WA 0812-3456-7890, Kunjungi techcert.id">
+                            <label for="cta">CTA (opsional)</label>
+                            <input type="text" id="cta" name="cta" placeholder="contoh: Daftar via WA 0812-3456-7890, Kunjungi techcert.id…" autocomplete="off">
                         </div>
 
                         <div class="form-group">
-                            <label for="brandColors">Warna Brand</label>
+                            <label for="brandColors">Warna Brand (opsional)</label>
                             <div class="color-picker-row">
                                 <input type="color" id="brandColorCustom" value="#1a73e8" title="Pilih warna custom">
                                 <div id="brandColorSwatches" class="color-swatches"></div>
                             </div>
-                            <input type="text" id="brandColors" name="brandColors" placeholder="Klik warna di atas, atau ketik: #1a73e8, #f9f9f9 (kosongkan jika tidak ada)">
+                            <input type="text" id="brandColors" name="brandColors" placeholder="Klik warna di atas, atau ketik: #1a73e8, #f9f9f9 (kosongkan jika tidak ada)…" autocomplete="off">
                             <div class="color-actions">
-                                <button type="button" id="clearBrandColors" class="btn-secondary btn-sm">🗑️ Hapus Warna</button>
+                                <button type="button" id="clearBrandColors" class="btn-secondary btn-sm"><span aria-hidden="true">🗑️</span> Hapus Warna</button>
                                 <small class="field-hint">Klik swatch untuk menambah/menghapus. Bisa pilih beberapa warna.</small>
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="unit_kompetensi">Unit Kompetensi yang Diajarkan (Optional)</label>
-                            <textarea id="unit_kompetensi" name="unit_kompetensi" rows="3" placeholder="contoh: Mengoperasikan Microsoft Excel, Membuat Dashboard, Analisis Data dengan Python (pisahkan dengan koma)"></textarea>
+                            <label for="unit_kompetensi">Unit Kompetensi yang Diajarkan (opsional)</label>
+                            <textarea id="unit_kompetensi" name="unit_kompetensi" rows="3" placeholder="contoh: Mengoperasikan Microsoft Excel, Membuat Dashboard, Analisis Data dengan Python (pisahkan dengan koma)…"></textarea>
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="programBenefits">Keunggulan Program (maks 3 poin)</label>
-                            <input type="text" id="programBenefits" name="programBenefits" placeholder="contoh: Sertifikat resmi BNSP, Materi praktik langsung, Trainer internasional">
+                            <label for="programBenefits">Keunggulan Program (opsional)</label>
+                            <input type="text" id="programBenefits" name="programBenefits" placeholder="contoh: Sertifikat resmi BNSP, Materi praktik langsung, Trainer internasional…" autocomplete="off">
                         </div>
                     </div>
 
@@ -143,21 +146,21 @@
 
             <section class="output-section" id="outputSection" style="display: none;">
                 <div class="output-header">
-                    <h2>📤 Hasil Generate</h2>
+                    <h2>Hasil Generate</h2>
                     <div class="output-actions">
                         <button class="btn-secondary" id="copyAllBtn">📋 Salin Semua</button>
                         <button class="btn-secondary" id="resetBtn">🔄 Buat Baru</button>
                     </div>
                 </div>
 
-                <div class="banner banner-danger" id="errorBanner" style="display: none;"></div>
+                <div class="banner banner-danger" id="errorBanner" style="display: none;" role="alert" aria-live="assertive"></div>
 
                 <div id="outputContainer"></div>
             </section>
 
             <section class="history-section" id="historySection" style="display: none;">
                 <div class="output-header">
-                    <h2>🕘 Riwayat Generate</h2>
+                    <h2>Riwayat Generate</h2>
                     <button class="btn-secondary" id="clearHistoryBtn">🗑️ Hapus Riwayat</button>
                 </div>
                 <div id="historyContainer"></div>

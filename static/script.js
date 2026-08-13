@@ -17,6 +17,12 @@
         const REQUIRED_FIELDS = ['programName', 'competency', 'targetAudience'];
         const STORAGE_KEY = 'promptGeneratorHistory';
 
+        let savedSinceEdit = true;
+        if (form) {
+            form.addEventListener('input', function () { savedSinceEdit = false; });
+            form.addEventListener('change', function () { savedSinceEdit = false; });
+        }
+
         const brandColorsInput = document.getElementById('brandColors');
         const brandColorCustom = document.getElementById('brandColorCustom');
         const brandColorSwatches = document.getElementById('brandColorSwatches');
@@ -129,6 +135,21 @@
             }
         }
 
+        function showToast(message) {
+            let toast = document.getElementById('appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'appToast';
+                toast.className = 'toast';
+                toast.setAttribute('role', 'status');
+                toast.setAttribute('aria-live', 'polite');
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(function () { toast.classList.remove('show'); }, 2500);
+        }
+
         function clearFieldErrors() {
             REQUIRED_FIELDS.forEach(function (field) {
                 const input = document.getElementById(field);
@@ -164,7 +185,7 @@
 
         function copyText(text, btn, successText) {
             if (!navigator.clipboard) {
-                alert('Clipboard tidak didukung di browser ini. Salin manual.');
+                showToast('Clipboard tidak didukung di browser ini. Salin manual.');
                 return;
             }
             navigator.clipboard.writeText(text).then(function () {
@@ -172,7 +193,7 @@
                 btn.textContent = successText || '✅ Tersalin!';
                 setTimeout(function () { btn.textContent = original; }, 2000);
             }).catch(function (err) {
-                alert('Gagal menyalin: ' + err.message);
+                showToast('Gagal menyalin: ' + err.message);
             });
         }
 
@@ -223,6 +244,7 @@
             if (brandColorsInput) {
                 syncSwatches();
             }
+            savedSinceEdit = true;
         }
 
         function saveToHistory(data, sections, demoMode, model) {
@@ -307,6 +329,9 @@
                 delBtn.className = 'btn-secondary btn-sm btn-danger-text';
                 delBtn.textContent = '🗑️ Hapus';
                 delBtn.addEventListener('click', function () {
+                    if (!window.confirm('Hapus riwayat ini? Tindakan tidak dapat dibatalkan.')) {
+                        return;
+                    }
                     history.splice(index, 1);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
                     loadHistory();
@@ -368,6 +393,7 @@
 
                 renderSections(result.sections || {});
                 saveToHistory(data, result.sections || {}, result.demo_mode, result.model);
+                savedSinceEdit = true;
                 loadHistory();
                 outputSection.style.display = 'block';
                 outputSection.scrollIntoView({ behavior: 'smooth' });
@@ -398,16 +424,28 @@
                 outputSection.style.display = 'none';
                 outputContainer.innerHTML = '';
                 setError(null);
+                savedSinceEdit = true;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         }
 
         if (clearHistoryBtn) {
             clearHistoryBtn.addEventListener('click', function () {
+                if (!window.confirm('Hapus semua riwayat generate? Tindakan tidak dapat dibatalkan.')) {
+                    return;
+                }
                 localStorage.removeItem(STORAGE_KEY);
                 loadHistory();
             });
         }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (!savedSinceEdit) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
 
         checkStatus();
         loadHistory();
