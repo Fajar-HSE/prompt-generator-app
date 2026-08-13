@@ -283,6 +283,61 @@ main {
     min-height: 1em;
 }
 
+.color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#brandColorCustom {
+    width: 42px;
+    height: 38px;
+    padding: 2px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-alt);
+    cursor: pointer;
+}
+
+.color-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s, box-shadow 0.2s;
+    position: relative;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.active {
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+}
+
+.color-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.field-hint {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
 .input-error {
     border-color: var(--danger) !important;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;

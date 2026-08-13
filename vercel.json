@@ -3,7 +3,7 @@
   "functions": {
     "app.py": {
       "maxDuration": 60,
-      "excludeFiles": "{tests/**,**/test_*.py,venv/**,.venv/**,__pycache__/**,**/__pycache__/**,.pytest_cache/**,.git/**,.env,.env.example}"
+      "excludeFiles": "{tests/**,**/test_*.py,venv/**,.venv/**,__pycache__/**,.pytest_cache/**,.git/**,.env,.env.example,README.md,Dockerfile,Procfile,runtime.txt}"
     }
   }
 }

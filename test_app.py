@@ -37,7 +37,7 @@ VALID_DATA = {
     "brand": "TechCert Indonesia",
     "cta": "Daftar via WA 0812-3456-7890",
     "brandColors": "#1a73e8",
-    "logo": "Logo TechCert",
+    "unit_kompetensi": "Excel, Dashboard, Python",
     "programBenefits": "Sertifikat resmi BNSP",
 }
 
@@ -105,6 +105,34 @@ def test_demo_resolution_variants():
     assert "1748x2480px" in demo_resolution("flyer", "")
     assert "1200x627px" in demo_resolution("poster", "LinkedIn post 1200x627")
     assert "1080x1080px" in demo_resolution("social_media", "")
+    assert "1748x2480px" in demo_resolution("brosur", "")
+
+
+def test_build_prompt_includes_material_brief():
+    prompt = build_prompt({**VALID_DATA, "materialType": "brosur"})
+    assert "jelaskan dan yakinkan" in prompt
+    assert "GAYA BAHASA DESAIN" in prompt
+    assert "STRUKTUR KONTEN" in prompt
+    assert "Problem -> Solution -> Benefit -> Features -> Proof -> CTA" in prompt
+    assert "Meyakinkan" in prompt
+    assert "TEKNIK HOOK" in prompt
+    assert "Hook brosur" in prompt
+
+    flyer_prompt = build_prompt({**VALID_DATA, "materialType": "flyer"})
+    assert "lihat, tertarik, bertindak" in flyer_prompt
+    assert "Hook -> Offer/Benefit -> Key info -> CTA" in flyer_prompt
+    assert "Hook flyer" in flyer_prompt
+
+    unknown_prompt = build_prompt(VALID_DATA)
+    assert "Poster" in unknown_prompt  # defaults to poster brief
+    assert "Hook -> Main Benefit -> Proof -> CTA" in unknown_prompt
+    assert "Hook poster" in unknown_prompt
+
+
+def test_build_prompt_uses_unit_kompetensi_field():
+    prompt = build_prompt({**VALID_DATA, "unit_kompetensi": "Excel, Dashboard"})
+    assert "UNIT KOMPETENSI" in prompt
+    assert "Excel, Dashboard" in prompt
 
 
 def test_generate_demo_output_structure():

@@ -52,17 +52,37 @@
                             <label for="materialType">Jenis Materi</label>
                             <select id="materialType" name="materialType">
                                 <option value="poster">Poster</option>
+                                <option value="brosur">Brosur</option>
                                 <option value="flyer">Flyer</option>
                                 <option value="pamflet">Pamflet</option>
                                 <option value="banner">Banner / Social Media</option>
                                 <option value="social_media">Social Media Post</option>
-                                <option value="print">Print (A4/A5)</option>
+                                <option value="print">Cetak / Print (A5 Flyer)</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="platformFormat">Platform / Format</label>
-                            <input type="text" id="platformFormat" name="platformFormat" placeholder="contoh: Instagram feed 1080x1350, LinkedIn post 1200x627">
+                            <select id="platformFormat" name="platformFormat">
+                                <option value="1080x1350px (4:5) — Instagram Feed">Instagram Feed — 1080×1350 (4:5)</option>
+                                <option value="1080x1080px (1:1) — Instagram Square">Instagram Square — 1080×1080 (1:1)</option>
+                                <option value="1080x1920px (9:16) — Instagram Story / Reels">Instagram Story / Reels — 1080×1920 (9:16)</option>
+                                <option value="1200x630px (1.91:1) — Facebook Post">Facebook Post — 1200×630 (1.91:1)</option>
+                                <option value="1080x1920px (9:16) — Facebook Story">Facebook Story — 1080×1920 (9:16)</option>
+                                <option value="851x315px (2.7:1) — Facebook Cover">Facebook Cover — 851×315 (2.7:1)</option>
+                                <option value="1200x627px (1.91:1) — LinkedIn Post">LinkedIn Post — 1200×627 (1.91:1)</option>
+                                <option value="1080x1920px (9:16) — LinkedIn Story">LinkedIn Story — 1080×1920 (9:16)</option>
+                                <option value="1200x675px (16:9) — X / Twitter Post">X / Twitter Post — 1200×675 (16:9)</option>
+                                <option value="1080x1920px (9:16) — TikTok">TikTok — 1080×1920 (9:16)</option>
+                                <option value="1000x1500px (2:3) — Pinterest Pin">Pinterest Pin — 1000×1500 (2:3)</option>
+                                <option value="1280x720px (16:9) — YouTube Thumbnail">YouTube Thumbnail — 1280×720 (16:9)</option>
+                                <option value="1600x900px (16:9) — Website Hero / Header">Website Hero / Header — 1600×900 (16:9)</option>
+                                <option value="728x90px (8.1:1) — Web Banner (Leaderboard)">Web Banner (Leaderboard) — 728×90</option>
+                                <option value="300x250px (1.2:1) — Google Display Banner">Google Display Banner — 300×250</option>
+                                <option value="600x200px (3:1) — Email Header">Email Header — 600×200 (3:1)</option>
+                                <option value="2480x3508px (A4) — A4 Print">A4 Print — 2480×3508</option>
+                                <option value="1748x2480px (A5) — A5 Print / Flyer">A5 Print / Flyer — 1748×2480</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -92,12 +112,20 @@
 
                         <div class="form-group">
                             <label for="brandColors">Warna Brand</label>
-                            <input type="text" id="brandColors" name="brandColors" placeholder="contoh: #1a73e8, #f9f9f9, atau kosongkan">
+                            <div class="color-picker-row">
+                                <input type="color" id="brandColorCustom" value="#1a73e8" title="Pilih warna custom">
+                                <div id="brandColorSwatches" class="color-swatches"></div>
+                            </div>
+                            <input type="text" id="brandColors" name="brandColors" placeholder="Klik warna di atas, atau ketik: #1a73e8, #f9f9f9 (kosongkan jika tidak ada)">
+                            <div class="color-actions">
+                                <button type="button" id="clearBrandColors" class="btn-secondary btn-sm">🗑️ Hapus Warna</button>
+                                <small class="field-hint">Klik swatch untuk menambah/menghapus. Bisa pilih beberapa warna.</small>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="logo">Deskripsi Logo</label>
-                            <input type="text" id="logo" name="logo" placeholder="contoh: Logo TechCert: huruf T biru elegan, atau kosongkan">
+                        <div class="form-group full-width">
+                            <label for="unit_kompetensi">Unit Kompetensi yang Diajarkan (Optional)</label>
+                            <textarea id="unit_kompetensi" name="unit_kompetensi" rows="3" placeholder="contoh: Mengoperasikan Microsoft Excel, Membuat Dashboard, Analisis Data dengan Python (pisahkan dengan koma)"></textarea>
                         </div>
 
                         <div class="form-group full-width">
