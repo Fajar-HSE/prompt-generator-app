@@ -99,7 +99,7 @@ docker run -p 5000:5000 --env-file .env prompt-generator-app
 
 ### Vercel
 
-Vercel mendeteksi Flask otomatis (ada `flask` di `requirements.txt` dan `app = Flask(__name__)` di `app.py`). Konfigurasi ada di `pyproject.toml` (`entrypoint = "app.py"`) dan `vercel.json` (durasi max 60 detik). Pastikan set `GROQ_API_KEY` di Environment Variables project Vercel.
+Project ini menggunakan framework **Vercel Services**. Pastikan di Vercel Dashboard → Project Settings → Framework Preset bernilai **Services**, dan `vercel.json` memuat blok `services` (sudah disediakan) yang menunjuk ke `app:app` dengan `framework: flask` dan durasi maksimal 60 detik. Lalu set `GROQ_API_KEY` di Environment Variables project Vercel.
 
 ```bash
 vercel env add GROQ_API_KEY
