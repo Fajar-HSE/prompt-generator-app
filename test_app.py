@@ -101,9 +101,9 @@ def test_build_prompt_defaults_for_missing():
 
 
 def test_demo_resolution_variants():
-    assert "1080x1350px" in demo_resolution("poster", "Instagram feed")
+    assert "2480x3508px" in demo_resolution("poster", "Instagram feed")  # material-based A4
     assert "1748x2480px" in demo_resolution("flyer", "")
-    assert "1200x627px" in demo_resolution("poster", "LinkedIn post 1200x627")
+    assert "1200x627px" in demo_resolution("poster", "1200x627px (1.91:1) — LinkedIn / web banner")
     assert "1080x1080px" in demo_resolution("social_media", "")
     assert "1748x2480px" in demo_resolution("brosur", "")
 
@@ -144,6 +144,22 @@ def test_generate_demo_output_structure():
         "QUALITY SCORE",
     }
     assert "TechCert Indonesia" in sections["IMAGE PROMPT"]
+
+
+def test_generate_demo_output_material_aware():
+    poster = generate_demo_output({**VALID_DATA, "materialType": "poster"})
+    brosur = generate_demo_output({**VALID_DATA, "materialType": "brosur"})
+    flyer = generate_demo_output({**VALID_DATA, "materialType": "flyer"})
+
+    assert poster["IMAGE PROMPT"] != brosur["IMAGE PROMPT"]
+    assert brosur["IMAGE PROMPT"] != flyer["IMAGE PROMPT"]
+
+    assert "Problem -> Solution -> Benefit -> Features -> Proof -> CTA" in brosur["IMAGE PROMPT"]
+    assert "Hook -> Offer/Benefit -> Key info -> CTA" in flyer["IMAGE PROMPT"]
+
+    assert "2480x3508px" in poster["FORMAT & RESOLUTION"]
+    assert "1748x2480px" in brosur["FORMAT & RESOLUTION"]
+    assert "1748x2480px" in flyer["FORMAT & RESOLUTION"]
 
 
 def test_api_status_reports_demo_mode(client):

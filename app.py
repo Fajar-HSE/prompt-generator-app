@@ -179,7 +179,11 @@ KEUNGGULAN PROGRAM: {program_benefits}
 OUTPUT FORMAT — HANYA BAGIAN INI, TANPA ANALISIS PANJANG, GUNAKAN HEADING MARKDOWN `##` DI SETIAP BAGIAN:
 
 ## IMAGE PROMPT
-[Satu paragraf lengkap dalam bahasa Inggris untuk DALL-E / Midjourney / Stable Diffusion yang mencakup: subject, environment, action, composition, camera, lighting, visual style, color, typography area, professional quality, aspect ratio. Wajib cantumkan HARGA/BIAYA, TANGGAL, LOKASI, BRAND, dan CTA (jika bukan 'N/A'/kosong) sebagai elemen teks yang jelas, terbaca, dan ditempatkan di posisi strategis dalam desain. Harga harus ditulis PERSIS sesuai input user (mis. 'Rp 2.500.000' atau 'Diskon 50%') agar konsisten di setiap generate.]
+[Satu paragraf lengkap dalam bahasa Inggris untuk DALL-E / Midjourney / Stable Diffusion yang mencakup: subject, environment, action, composition, camera, lighting, visual style, color, typography area, professional quality, aspect ratio. WAJIB terapkan secara eksplisit dalam desain:
+- HEADLINE / TEKS PEMBUKA HARUS berupa HOOK dari TEKNIK HOOK di atas sesuai jenis materi: poster = kuat & satu pesan, flyer = agresif & langsung offer, brosur = elegan & positioning, pamflet = urgent/important, banner = 2-7 kata kontras, social media = psikologis & stop-scroll, print A5 = paduan brosur/flyer.
+- SUSUNAN COPY HARUS mengikuti STRUKTUR KONTEN di atas berurutan (mis. brosur: Problem -> Solution -> Benefit -> Features -> Proof -> CTA); tiap tahap tampil sebagai teks/copy berbeda di dalam layout.
+- TONE, PANJANG COPY, HIRARKI, dan LAYOUT HARUS mengikuti GAYA BAHASA DESAIN di atas untuk jenis materi tersebut.
+- Wajib cantumkan HARGA/BIAYA, TANGGAL, LOKASI, BRAND, dan CTA (jika bukan 'N/A'/kosong) sebagai elemen teks jelas, terbaca, di posisi strategis. Harga ditulis PERSIS sesuai input user (mis. 'Rp 2.500.000' atau 'Diskon 50%').]
 
 ## NEGATIVE PROMPT
 [Satu baris negative prompt — selalu sebutkan: generic stock photo, cheap Canva aesthetic, cluttered composition, excessive text, low quality, unrealistic anatomy, distorted hands, cartoon, watermark, plus negative spesifik topik]
@@ -197,9 +201,9 @@ ATURAN:
 - Negativ prompt harus spesifik dengan topik.
 - Jika ada harga, tanggal, atau CTA, sebutkan relevansinya di prompt.
 - HARGA/BIAYA, TANGGAL, LOKASI, BRAND, dan CTA yang diisi user WAJIB muncul di dalam desain sebagai teks yang konsisten dan mudah dibaca (bukan sekadar disebut). Tuliskan harga persis seperti input (mis. 'Rp 2.500.000' / 'Diskon 50%'). Jika bernilai 'N/A' atau kosong, jangan tampilkan sama sekali.
-- Sesuaikan gaya bahasa, panjang copy, hierarki teks, dan tone dengan GAYA BAHASA DESAIN di atas. Masing-masing jenis materi (poster, brosur, flyer, pamflet, banner, social media) punya karakter bahasa yang berbeda — patuhi prinsipnya.
-- Susun urutan copy/teks pada desain mengikuti STRUKTUR KONTEN di atas (mis. brosur: Problem -> Solution -> Benefit -> Features -> Proof -> CTA). Setiap tahap harus terwakili secara visual dan naratif sesuai tujuannya.
-- Buat headline/hook pembuka mengikuti TEKNIK HOOK di atas sesuai jenis materi (brosur elegan & positioning, flyer agresif & offer, pamflet soal urgency/important, banner 2-7 kata kontras, social media psikologis & stop-scroll). Hook bukan hanya teks — pertimbangkan ukuran, posisi, dan kontras visualnya.
+- WAJIB: gaya bahasa, panjang copy, hierarki teks, dan tone mengikuti GAYA BAHASA DESAIN di atas. Tiap jenis materi (poster, brosur, flyer, pamflet, banner, social media, print) punya karakter berbeda — terapkan, jangan abaikan.
+- WAJIB: urutan copy/teks pada desain mengikuti STRUKTUR KONTEN di atas (mis. brosur: Problem -> Solution -> Benefit -> Features -> Proof -> CTA). Setiap tahap harus tampil secara visual dan naratif sesuai tujuannya.
+- WAJIB: headline/hook pembuka mengikuti TEKNIK HOOK di atas sesuai jenis materi (brosur elegan & positioning, flyer agresif & offer, pamflet soal urgency/important, banner 2-7 kata kontras, social media psikologis & stop-scroll, poster kuat & satu pesan). Hook bukan hanya teks — pertimbangkan ukuran, posisi, dan kontras visualnya.
 """
 
 
@@ -314,21 +318,23 @@ def build_prompt(data):
 
 
 def demo_resolution(material_type, platform_format):
-    if platform_format and "\u2014" in platform_format:
-        return platform_format
-    haystack = f"{platform_format or ''} {material_type or ''}".lower()
-    mapping = [
-        (("story", "reel"), "1080x1920px (9:16) — Instagram Story / Reel"),
-        (("linkedin", "1200x627", "banner"), "1200x627px (1.91:1) — LinkedIn / web banner"),
-        (("a4",), "2480x3508px (A4) — poster cetak"),
-        (("a5", "print", "flyer", "brosur"), "1748x2480px (A5) — flyer cetak"),
-        (("social_media", "social"), "1080x1080px (1:1) — social media post"),
-        (("1080x1350", "instagram", "feed", "poster", "pamflet"), "1080x1350px (4:5) — Instagram Feed poster"),
-    ]
-    for keywords, label in mapping:
-        if any(kw in haystack for kw in keywords):
-            return label
-    return "1080x1350px (4:5) — Instagram Feed poster"
+    pf = (platform_format or "").strip()
+    # If the platform choice already carries an explicit dimension AND is not the
+    # generic default, honor it (the <select> options include concrete sizes).
+    if pf and "1080x1350" not in pf and re.search(r"\d+x\d+", pf):
+        return pf
+
+    material_type = (material_type or "poster").lower()
+    by_material = {
+        "poster": "2480x3508px (A4) — poster cetak",
+        "brosur": "1748x2480px (A5) — brosur cetak",
+        "flyer": "1748x2480px (A5) — flyer cetak",
+        "pamflet": "1080x1350px (4:5) — pamflet sosial media",
+        "banner": "1200x627px (1.91:1) — web banner",
+        "social_media": "1080x1080px (1:1) — social media post",
+        "print": "1748x2480px (A5) — cetak A5",
+    }
+    return by_material.get(material_type, "1080x1350px (4:5) — Instagram Feed poster")
 
 
 def generate_demo_output(data):
@@ -338,14 +344,51 @@ def generate_demo_output(data):
     competency = data.get("competency") or "data analytics"
     brand = data.get("brand") or ""
     unit_kompetensi = data.get("unit_kompetensi") or ""
+    program_name = data.get("programName") or "Professional Training Program"
+    price = data.get("price") or "N/A"
+    date = data.get("date") or "N/A"
+    location = data.get("location") or "N/A"
+    cta = data.get("cta") or ""
+
+    brief = MATERIAL_BRIEFS.get(material_type, MATERIAL_BRIEFS["poster"])
+    structure = brief["structure"]
+    goal = brief["goal"]
+
+    hook_examples = {
+        "poster": f"Headline hook: '{program_name} - Sertifikasi Diakui Industri'",
+        "brosur": f"Headline hook: 'Untuk {subject} yang ingin karier lebih tinggi'",
+        "flyer": f"Headline hook: 'PROMO - Diskon 50% {program_name}!'",
+        "pamflet": f"Headline hook: 'Tahukah Anda? {competency} kini wajib di Industri 4.0'",
+        "banner": f"Headline hook: 'NAIK KARIER LEWAT {competency.upper()}'",
+        "social_media": f"Headline hook: '3 Alasan Desain Poster Kamu Terlihat Amatir'",
+        "print": f"Headline hook: '{program_name} - Solusi Pelatihan Terbaik'",
+    }
+    hook = hook_examples.get(material_type, hook_examples["poster"])
+
     brand_part = f", branded with {brand}" if brand else ""
 
     image_prompt = (
-        f"Professional realistic {subject} in a modern corporate environment, engaged with {competency} tasks, "
-        "clean contemporary office or training room, natural window lighting, shallow depth of field, "
-        "corporate editorial photography style, premium color palette, ample negative space for typography "
-        f"overlay, sharp focus, high resolution, professional quality{brand_part}, {platform_format}"
-    ).strip(", ")
+        f"Professional {material_type} design for {program_name}, target {subject}, topic {competency}. "
+        f"Material style (goal: {goal}): {brief['brief']} "
+        f"Visual: modern corporate environment, natural lighting, premium color palette, "
+        f"negative space for typography, sharp focus, high resolution, professional quality{brand_part}. "
+        f"{hook}. "
+        f"Copy structure to follow in layout: {structure}. "
+        f"Visible text: program name '{program_name}'"
+    )
+
+    extras = []
+    if price and price != "N/A":
+        extras.append(f"price '{price}'")
+    if date and date != "N/A":
+        extras.append(f"date {date}")
+    if location and location != "N/A":
+        extras.append(f"location {location}")
+    if cta:
+        extras.append(f"CTA '{cta}'")
+    if extras:
+        image_prompt += "; " + ", ".join(extras) + "."
+    image_prompt += f" Format: {demo_resolution(material_type, platform_format)}."
 
     return {
         "IMAGE PROMPT": image_prompt,
