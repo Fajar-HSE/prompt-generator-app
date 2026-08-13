@@ -3,8 +3,7 @@
   "services": {
     "web": {
       "root": ".",
-      "entrypoint": "app:app",
-      "maxDuration": 60
+      "entrypoint": "app:app"
     }
   },
   "rewrites": [
