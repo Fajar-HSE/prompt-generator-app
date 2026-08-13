@@ -3,7 +3,6 @@
   "services": {
     "web": {
       "root": ".",
-      "framework": "flask",
       "entrypoint": "app:app",
       "maxDuration": 60
     }
