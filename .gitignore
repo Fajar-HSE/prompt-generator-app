@@ -13,8 +13,8 @@ build/
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Testing
 .pytest_cache/
@@ -32,4 +32,3 @@ htmlcov/
 # OS
 Thumbs.db
 .vercel
-.env*

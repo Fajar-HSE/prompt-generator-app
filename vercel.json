@@ -3,16 +3,10 @@
   "services": {
     "web": {
       "root": ".",
-      "entrypoint": "app.py"
+      "entrypoint": "app:app"
     }
   },
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "web"
-      }
-    }
+    { "source": "/(.*)", "destination": { "service": "web" } }
   ]
 }

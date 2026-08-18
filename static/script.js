@@ -17,6 +17,106 @@
         const REQUIRED_FIELDS = ['programName', 'competency', 'targetAudience'];
         const STORAGE_KEY = 'promptGeneratorHistory';
 
+        let savedSinceEdit = true;
+        if (form) {
+            form.addEventListener('input', function () { savedSinceEdit = false; });
+            form.addEventListener('change', function () { savedSinceEdit = false; });
+        }
+
+        const brandColorsInput = document.getElementById('brandColors');
+        const brandColorCustom = document.getElementById('brandColorCustom');
+        const brandColorSwatches = document.getElementById('brandColorSwatches');
+        const clearBrandColorsBtn = document.getElementById('clearBrandColors');
+
+        const BRAND_COLORS = [
+            '#1a73e8', '#0a66c2', '#1877f2', '#e1306c',
+            '#25d366', '#34a853', '#fbbc04', '#ea4335',
+            '#ff6d00', '#6f42c1', '#00897b', '#d4af37',
+            '#111111', '#ffffff', '#f1f3f4', '#c0392b'
+        ];
+
+        function getSelectedColors() {
+            return (brandColorsInput.value || '')
+                .split(',')
+                .map(function (c) { return c.trim().toLowerCase(); })
+                .filter(function (c) { return c.length > 0; });
+        }
+
+        function setSelectedColors(colors) {
+            const unique = [];
+            colors.forEach(function (c) {
+                c = c.trim().toLowerCase();
+                if (c && unique.indexOf(c) === -1) unique.push(c);
+            });
+            brandColorsInput.value = unique.join(', ');
+            syncSwatches();
+        }
+
+        function toggleColor(hex) {
+            const current = getSelectedColors();
+            const idx = current.indexOf(hex.toLowerCase());
+            if (idx === -1) {
+                current.push(hex.toLowerCase());
+            } else {
+                current.splice(idx, 1);
+            }
+            setSelectedColors(current);
+        }
+
+        function syncSwatches() {
+            const selected = getSelectedColors();
+            const swatches = brandColorSwatches.querySelectorAll('.color-swatch');
+            swatches.forEach(function (sw) {
+                if (selected.indexOf(sw.dataset.color.toLowerCase()) !== -1) {
+                    sw.classList.add('active');
+                } else {
+                    sw.classList.remove('active');
+                }
+            });
+            if (selected.length) {
+                brandColorCustom.value = selected[selected.length - 1];
+            }
+        }
+
+        function renderSwatches() {
+            BRAND_COLORS.forEach(function (hex) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'color-swatch';
+                btn.style.background = hex;
+                btn.dataset.color = hex;
+                btn.title = hex;
+                btn.setAttribute('aria-label', 'Warna ' + hex);
+                btn.addEventListener('click', function () { toggleColor(hex); });
+                brandColorSwatches.appendChild(btn);
+            });
+        }
+
+        if (brandColorCustom) {
+            brandColorCustom.addEventListener('input', function () {
+                const hex = brandColorCustom.value;
+                const current = getSelectedColors();
+                if (current.indexOf(hex.toLowerCase()) === -1) {
+                    current.push(hex.toLowerCase());
+                    setSelectedColors(current);
+                }
+            });
+        }
+
+        if (clearBrandColorsBtn) {
+            clearBrandColorsBtn.addEventListener('click', function () {
+                brandColorsInput.value = '';
+                syncSwatches();
+            });
+        }
+
+        if (brandColorsInput) {
+            brandColorsInput.addEventListener('input', syncSwatches);
+        }
+
+        renderSwatches();
+        syncSwatches();
+
         function setLoading(loading) {
             const btnText = submitBtn.querySelector('.btn-text');
             const btnLoading = submitBtn.querySelector('.btn-loading');
@@ -33,6 +133,21 @@
                 errorBanner.style.display = 'none';
                 errorBanner.textContent = '';
             }
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'appToast';
+                toast.className = 'toast';
+                toast.setAttribute('role', 'status');
+                toast.setAttribute('aria-live', 'polite');
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(function () { toast.classList.remove('show'); }, 2500);
         }
 
         function clearFieldErrors() {
@@ -70,7 +185,7 @@
 
         function copyText(text, btn, successText) {
             if (!navigator.clipboard) {
-                alert('Clipboard tidak didukung di browser ini. Salin manual.');
+                showToast('Clipboard tidak didukung di browser ini. Salin manual.');
                 return;
             }
             navigator.clipboard.writeText(text).then(function () {
@@ -78,7 +193,7 @@
                 btn.textContent = successText || '✅ Tersalin!';
                 setTimeout(function () { btn.textContent = original; }, 2000);
             }).catch(function (err) {
-                alert('Gagal menyalin: ' + err.message);
+                showToast('Gagal menyalin: ' + err.message);
             });
         }
 
@@ -118,6 +233,20 @@
             });
         }
 
+        function populateForm(data) {
+            form.reset();
+            Object.keys(data || {}).forEach(function (key) {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = data[key];
+                }
+            });
+            if (brandColorsInput) {
+                syncSwatches();
+            }
+            savedSinceEdit = true;
+        }
+
         function saveToHistory(data, sections, demoMode, model) {
             let history = [];
             try {
@@ -128,6 +257,7 @@
             const entry = {
                 timestamp: new Date().toISOString(),
                 programName: data.programName || '',
+                data: data,
                 demoMode: !!demoMode,
                 model: model || '',
                 sections: sections,
@@ -189,8 +319,7 @@
                 loadBtn.className = 'btn-secondary btn-sm';
                 loadBtn.textContent = '↩️ Isi Ulang Form';
                 loadBtn.addEventListener('click', function () {
-                    form.reset();
-                    Object.keys(entry.sections || {}).forEach(function () {});
+                    populateForm(entry.data || {});
                     outputSection.style.display = 'none';
                     setError(null);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -200,6 +329,9 @@
                 delBtn.className = 'btn-secondary btn-sm btn-danger-text';
                 delBtn.textContent = '🗑️ Hapus';
                 delBtn.addEventListener('click', function () {
+                    if (!window.confirm('Hapus riwayat ini? Tindakan tidak dapat dibatalkan.')) {
+                        return;
+                    }
                     history.splice(index, 1);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
                     loadHistory();
@@ -261,6 +393,7 @@
 
                 renderSections(result.sections || {});
                 saveToHistory(data, result.sections || {}, result.demo_mode, result.model);
+                savedSinceEdit = true;
                 loadHistory();
                 outputSection.style.display = 'block';
                 outputSection.scrollIntoView({ behavior: 'smooth' });
@@ -287,19 +420,32 @@
             resetBtn.addEventListener('click', function () {
                 form.reset();
                 clearFieldErrors();
+                if (brandColorsInput) syncSwatches();
                 outputSection.style.display = 'none';
                 outputContainer.innerHTML = '';
                 setError(null);
+                savedSinceEdit = true;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         }
 
         if (clearHistoryBtn) {
             clearHistoryBtn.addEventListener('click', function () {
+                if (!window.confirm('Hapus semua riwayat generate? Tindakan tidak dapat dibatalkan.')) {
+                    return;
+                }
                 localStorage.removeItem(STORAGE_KEY);
                 loadHistory();
             });
         }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (!savedSinceEdit) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
 
         checkStatus();
         loadHistory();

@@ -98,6 +98,15 @@ docker run -p 5000:5000 --env-file .env prompt-generator-app
 - `Procfile` dan `runtime.txt` sudah disediakan untuk Heroku/Render.
 - Render: buat **Web Service**, set build command `pip install -r requirements.txt` dan start command `gunicorn -b 0.0.0.0:$PORT -w 2 --timeout 90 app:app`.
 
+### Vercel
+
+Project ini menggunakan framework **Vercel Services**. Pastikan di Vercel Dashboard → Project Settings → Framework Preset bernilai **Services**, dan `vercel.json` memuat blok `services` (sudah disediakan) yang menunjuk ke `app:app` dengan `framework: flask` dan durasi maksimal 60 detik. Lalu set `GROQ_API_KEY` di Environment Variables project Vercel.
+
+```bash
+vercel env add GROQ_API_KEY
+vercel deploy
+```
+
 ## API
 
 ### `GET /api/status`

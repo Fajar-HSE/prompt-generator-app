@@ -37,7 +37,7 @@ VALID_DATA = {
     "brand": "TechCert Indonesia",
     "cta": "Daftar via WA 0812-3456-7890",
     "brandColors": "#1a73e8",
-    "logo": "Logo TechCert",
+    "unit_kompetensi": "Excel, Dashboard, Python",
     "programBenefits": "Sertifikat resmi BNSP",
 }
 
@@ -101,10 +101,38 @@ def test_build_prompt_defaults_for_missing():
 
 
 def test_demo_resolution_variants():
-    assert "1080x1350px" in demo_resolution("poster", "Instagram feed")
+    assert "2480x3508px" in demo_resolution("poster", "Instagram feed")  # material-based A4
     assert "1748x2480px" in demo_resolution("flyer", "")
-    assert "1200x627px" in demo_resolution("poster", "LinkedIn post 1200x627")
+    assert "1200x627px" in demo_resolution("poster", "1200x627px (1.91:1) — LinkedIn / web banner")
     assert "1080x1080px" in demo_resolution("social_media", "")
+    assert "1748x2480px" in demo_resolution("brosur", "")
+
+
+def test_build_prompt_includes_material_brief():
+    prompt = build_prompt({**VALID_DATA, "materialType": "brosur"})
+    assert "jelaskan dan yakinkan" in prompt
+    assert "GAYA BAHASA DESAIN" in prompt
+    assert "STRUKTUR KONTEN" in prompt
+    assert "Problem -> Solution -> Benefit -> Features -> Proof -> CTA" in prompt
+    assert "Meyakinkan" in prompt
+    assert "TEKNIK HOOK" in prompt
+    assert "Hook brosur" in prompt
+
+    flyer_prompt = build_prompt({**VALID_DATA, "materialType": "flyer"})
+    assert "lihat, tertarik, bertindak" in flyer_prompt
+    assert "Hook -> Offer/Benefit -> Key info -> CTA" in flyer_prompt
+    assert "Hook flyer" in flyer_prompt
+
+    unknown_prompt = build_prompt(VALID_DATA)
+    assert "Poster" in unknown_prompt  # defaults to poster brief
+    assert "Hook -> Main Benefit -> Proof -> CTA" in unknown_prompt
+    assert "Hook poster" in unknown_prompt
+
+
+def test_build_prompt_uses_unit_kompetensi_field():
+    prompt = build_prompt({**VALID_DATA, "unit_kompetensi": "Excel, Dashboard"})
+    assert "UNIT KOMPETENSI" in prompt
+    assert "Excel, Dashboard" in prompt
 
 
 def test_generate_demo_output_structure():
@@ -116,6 +144,22 @@ def test_generate_demo_output_structure():
         "QUALITY SCORE",
     }
     assert "TechCert Indonesia" in sections["IMAGE PROMPT"]
+
+
+def test_generate_demo_output_material_aware():
+    poster = generate_demo_output({**VALID_DATA, "materialType": "poster"})
+    brosur = generate_demo_output({**VALID_DATA, "materialType": "brosur"})
+    flyer = generate_demo_output({**VALID_DATA, "materialType": "flyer"})
+
+    assert poster["IMAGE PROMPT"] != brosur["IMAGE PROMPT"]
+    assert brosur["IMAGE PROMPT"] != flyer["IMAGE PROMPT"]
+
+    assert "Problem -> Solution -> Benefit -> Features -> Proof -> CTA" in brosur["IMAGE PROMPT"]
+    assert "Hook -> Offer/Benefit -> Key info -> CTA" in flyer["IMAGE PROMPT"]
+
+    assert "2480x3508px" in poster["FORMAT & RESOLUTION"]
+    assert "1748x2480px" in brosur["FORMAT & RESOLUTION"]
+    assert "1748x2480px" in flyer["FORMAT & RESOLUTION"]
 
 
 def test_api_status_reports_demo_mode(client):
