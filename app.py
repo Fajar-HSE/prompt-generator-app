@@ -501,14 +501,15 @@ def generate():
 
     try:
         result = response.json()
-        ai_output = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+        message = result.get("choices", [{}])[0].get("message", {})
+        ai_output = message.get("content") or message.get("reasoning") or ""
     except (ValueError, IndexError, KeyError, TypeError):
         return jsonify({
             "success": False,
             "error": "Respons dari LLM API tidak dapat dipahami. Coba lagi, atau aktifkan demo mode.",
         }), 502
 
-    if not ai_output.strip():
+    if not ai_output or not ai_output.strip():
         return jsonify({
             "success": False,
             "error": "LLM API mengembalikan output kosong. Coba lagi.",
