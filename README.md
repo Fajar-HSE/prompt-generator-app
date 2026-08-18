@@ -1,6 +1,6 @@
 # AI Creative Director — Prompt Generator App
 
-Web app sederhana untuk generate **image generation prompts siap pakai** berdasarkan skill AI Creative Director, menggunakan Groq API (free tier).
+Web app sederhana untuk generate **image generation prompts siap pakai** berdasarkan skill AI Creative Director, menggunakan LLM API (OpenAI-compatible).
 
 ## Fitur
 
@@ -11,7 +11,7 @@ Web app sederhana untuk generate **image generation prompts siap pakai** berdasa
 - Riwayat generate tersimpan di browser (localStorage, maks 10 entri)
 - Responsive design — pakai di desktop atau mobile
 - Error handling lengkap: validasi input, rate limit, timeout, retry otomatis
-- Model LLM dapat dikonfigurasi via env (`GROQ_MODEL`)
+- Model LLM dapat dikonfigurasi via env (`LLM_MODEL`)
 
 ## Persiapan
 
@@ -27,10 +27,9 @@ venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Dapatkan API Key Groq
+### 2. Dapatkan API Key
 
-- Daftar gratis di https://console.groq.com
-- Free tier cukup untuk penggunaan pribadi
+- Daftar di provider LLM OpenAI-compatible (misal: OpenAI, OpenRouter, TokenPortal, dll)
 - Salin API key Anda
 
 ### 3. Buat File `.env`
@@ -39,10 +38,11 @@ pip install -r requirements.txt
 cp .env.example .env        # Windows: copy .env.example .env
 ```
 
-Lalu isi API key:
+Lalu isi API key dan URL:
 
 ```env
-GROQ_API_KEY=sk-you-api-key-here
+LLM_API_KEY=sk-you-api-key-here
+LLM_API_URL=https://api.tokenportal.id/v1/chat/completions
 ```
 
 ### 4. Jalankan App
@@ -68,11 +68,12 @@ Tanpa API key app tetap berjalan dalam **demo mode** (output statis, tanpa pangg
 
 | Variabel | Default | Keterangan |
 |---|---|---|
-| `GROQ_API_KEY` | `""` | API key Groq. Kosong = demo mode. |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Model chat completion Groq. |
-| `GROQ_MAX_TOKENS` | `2000` | Batas token output. |
-| `GROQ_TIMEOUT` | `60` | Timeout request (detik). |
-| `GROQ_MAX_RETRIES` | `3` | Retry otomatis saat rate limit/5xx. |
+| `LLM_API_KEY` | `""` | API key LLM provider. Kosong = demo mode. |
+| `LLM_API_URL` | `https://api.tokenportal.id/v1/chat/completions` | Base URL API (OpenAI-compatible). |
+| `LLM_MODEL` | `""` | Model chat completion. |
+| `LLM_MAX_TOKENS` | `2000` | Batas token output. |
+| `LLM_TIMEOUT` | `60` | Timeout request (detik). |
+| `LLM_MAX_RETRIES` | `3` | Retry otomatis saat rate limit/5xx. |
 | `PORT` | `5000` | Port server. |
 | `FLASK_DEBUG` | `false` | Aktifkan debug mode (`true`). |
 
@@ -93,7 +94,7 @@ docker run -p 5000:5000 --env-file .env prompt-generator-app
 
 ### Heroku / Render / Railway
 
-- Set `GROQ_API_KEY` sebagai environment variable di platform (jangan taruh di file).
+- Set `LLM_API_KEY` sebagai environment variable di platform (jangan taruh di file).
 - `Procfile` dan `runtime.txt` sudah disediakan untuk Heroku/Render.
 - Render: buat **Web Service**, set build command `pip install -r requirements.txt` dan start command `gunicorn -b 0.0.0.0:$PORT -w 2 --timeout 90 app:app`.
 
@@ -104,7 +105,7 @@ docker run -p 5000:5000 --env-file .env prompt-generator-app
 Mengembalikan status demo mode & model:
 
 ```json
-{ "demo_mode": true, "model": "llama-3.3-70b-versatile" }
+{ "demo_mode": true, "model": "" }
 ```
 
 ### `POST /api/generate`
@@ -117,7 +118,7 @@ Respons sukses:
 {
   "success": true,
   "demo_mode": false,
-  "model": "llama-3.3-70b-versatile",
+  "model": "",
   "sections": {
     "IMAGE PROMPT": "...",
     "NEGATIVE PROMPT": "...",
@@ -133,6 +134,6 @@ Data Analyst, GIS, K3, HVAC, Environmental, LCA, Instructor, Finance, IT Service
 
 ## Keamanan
 
-- `GROQ_API_KEY` hanya dipakai di sisi server; tidak pernah dikirim ke browser.
+- `LLM_API_KEY` hanya dipakai di sisi server; tidak pernah dikirim ke browser.
 - Pastikan `.env` tidak pernah masuk ke git (sudah ada di `.gitignore`).
 - Di production, selalu set key via environment variable platform, bukan `.env`.

@@ -8,7 +8,7 @@ sys.path.insert(0, ".")
 
 import app as app_module
 from app import (
-    GROQ_API_KEY,
+    LLM_API_KEY,
     build_prompt,
     demo_resolution,
     generate_demo_output,
@@ -140,8 +140,8 @@ def test_generate_invalid_json(client):
 
 
 def test_generate_demo_mode_when_no_key(client, monkeypatch):
-    if GROQ_API_KEY:
-        pytest.skip("GROQ_API_KEY is set; testing demo path requires no key")
+    if LLM_API_KEY:
+        pytest.skip("LLM_API_KEY is set; testing demo path requires no key")
     resp = client.post("/api/generate", json=VALID_DATA)
     assert resp.status_code == 200
     data = resp.get_json()
@@ -155,10 +155,10 @@ def test_generate_demo_mode_when_no_key(client, monkeypatch):
     }
 
 
-@mock.patch.object(app_module, "GROQ_API_KEY", "sk-test")
+@mock.patch.object(app_module, "LLM_API_KEY", "sk-test")
 @mock.patch.object(app_module.requests.Session, "post")
 def test_generate_success_parses_sections(mock_post, client, monkeypatch):
-    monkeypatch.setattr(app_module, "GROQ_API_KEY", "sk-test")
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "sk-test")
     mock_response = mock.Mock()
     mock_response.status_code = 200
     mock_response.raise_for_status = lambda: None
@@ -183,14 +183,14 @@ def test_generate_success_parses_sections(mock_post, client, monkeypatch):
     data = resp.get_json()
     assert data["success"] is True
     assert data["demo_mode"] is False
-    assert data["model"] == app_module.GROQ_MODEL
+    assert data["model"] == app_module.LLM_MODEL
     assert data["sections"]["IMAGE PROMPT"] == "A poster."
 
 
-@mock.patch.object(app_module, "GROQ_API_KEY", "sk-test")
+@mock.patch.object(app_module, "LLM_API_KEY", "sk-test")
 @mock.patch.object(app_module.requests.Session, "post")
 def test_generate_unauthorized(mock_post, client, monkeypatch):
-    monkeypatch.setattr(app_module, "GROQ_API_KEY", "sk-test")
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "sk-test")
     mock_response = mock.Mock()
     mock_response.status_code = 401
     mock_response.raise_for_status = lambda: None
@@ -202,10 +202,10 @@ def test_generate_unauthorized(mock_post, client, monkeypatch):
     assert resp.get_json()["success"] is False
 
 
-@mock.patch.object(app_module, "GROQ_API_KEY", "sk-test")
+@mock.patch.object(app_module, "LLM_API_KEY", "sk-test")
 @mock.patch.object(app_module.requests.Session, "post")
 def test_generate_rate_limited(mock_post, client, monkeypatch):
-    monkeypatch.setattr(app_module, "GROQ_API_KEY", "sk-test")
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "sk-test")
     mock_response = mock.Mock()
     mock_response.status_code = 429
     mock_response.raise_for_status = lambda: None

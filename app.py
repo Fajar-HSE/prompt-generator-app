@@ -11,12 +11,12 @@ load_dotenv()
 
 app = Flask(__name__)
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-GROQ_MAX_TOKENS = int(os.getenv("GROQ_MAX_TOKENS", "2000"))
-GROQ_TIMEOUT = int(os.getenv("GROQ_TIMEOUT", "60"))
-GROQ_MAX_RETRIES = int(os.getenv("GROQ_MAX_RETRIES", "3"))
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_API_URL = os.getenv("LLM_API_URL", "https://api.tokenportal.id/v1/chat/completions")
+LLM_MODEL = os.getenv("LLM_MODEL", "")
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2000"))
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "60"))
+LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
 
 REQUIRED_FIELDS = {
     "programName": "Nama Program",
@@ -76,7 +76,7 @@ ATURAN:
 
 def _build_session():
     retries = Retry(
-        total=GROQ_MAX_RETRIES,
+        total=LLM_MAX_RETRIES,
         backoff_factor=1.0,
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["POST"],
@@ -223,8 +223,8 @@ def index():
 @app.route("/api/status")
 def status():
     return jsonify({
-        "demo_mode": not bool(GROQ_API_KEY),
-        "model": GROQ_MODEL,
+        "demo_mode": not bool(LLM_API_KEY),
+        "model": LLM_MODEL,
     })
 
 
@@ -239,23 +239,23 @@ def generate():
             "fields": errors,
         }), 400
 
-    if not GROQ_API_KEY:
+    if not LLM_API_KEY:
         return jsonify({
             "success": True,
             "demo_mode": True,
-            "model": GROQ_MODEL,
+            "model": LLM_MODEL,
             "sections": generate_demo_output(data),
         })
 
     prompt = build_prompt(data)
 
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {LLM_API_KEY}",
         "Content-Type": "application/json",
     }
 
     payload = {
-        "model": GROQ_MODEL,
+        "model": LLM_MODEL,
         "messages": [
             {
                 "role": "system",
@@ -266,38 +266,38 @@ def generate():
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.7,
-        "max_tokens": GROQ_MAX_TOKENS,
+        "max_tokens": LLM_MAX_TOKENS,
         "top_p": 0.9,
     }
 
     try:
         session = _build_session()
-        response = session.post(GROQ_API_URL, headers=headers, json=payload, timeout=GROQ_TIMEOUT)
+        response = session.post(LLM_API_URL, headers=headers, json=payload, timeout=LLM_TIMEOUT)
     except requests.exceptions.Timeout:
         return jsonify({
             "success": False,
-            "error": "Waktu permintaan ke Groq API habis. Coba lagi, atau aktifkan demo mode.",
+            "error": "Waktu permintaan ke LLM API habis. Coba lagi, atau aktifkan demo mode.",
         }), 504
     except requests.exceptions.ConnectionError:
         return jsonify({
             "success": False,
-            "error": "Tidak dapat terhubung ke Groq API. Periksa koneksi internet Anda.",
+            "error": "Tidak dapat terhubung ke LLM API. Periksa koneksi internet Anda.",
         }), 502
     except requests.exceptions.RequestException as exc:
         return jsonify({
             "success": False,
-            "error": f"Gagal menghubungi Groq API: {exc}",
+            "error": f"Gagal menghubungi LLM API: {exc}",
         }), 502
 
     if response.status_code == 401:
         return jsonify({
             "success": False,
-            "error": "API key Groq tidak valid atau tidak ditemukan. Pastikan GROQ_API_KEY sudah di-set di file .env.",
+            "error": "API key tidak valid atau tidak ditemukan. Pastikan LLM_API_KEY sudah di-set di file .env.",
         }), 401
     if response.status_code == 429:
         return jsonify({
             "success": False,
-            "error": "Rate limit Groq API tercapai. Tunggu sebentar lalu coba lagi, atau aktifkan demo mode.",
+            "error": "Rate limit API tercapai. Tunggu sebentar lalu coba lagi, atau aktifkan demo mode.",
         }), 429
     if response.status_code >= 400:
         try:
@@ -306,7 +306,7 @@ def generate():
             detail = response.text
         return jsonify({
             "success": False,
-            "error": f"Groq API mengembalikan error {response.status_code}: {detail}",
+            "error": f"LLM API mengembalikan error {response.status_code}: {detail}",
         }), 502
 
     try:
@@ -315,19 +315,19 @@ def generate():
     except (ValueError, IndexError, KeyError, TypeError):
         return jsonify({
             "success": False,
-            "error": "Respons dari Groq API tidak dapat dipahami. Coba lagi, atau aktifkan demo mode.",
+            "error": "Respons dari LLM API tidak dapat dipahami. Coba lagi, atau aktifkan demo mode.",
         }), 502
 
     if not ai_output.strip():
         return jsonify({
             "success": False,
-            "error": "Groq API mengembalikan output kosong. Coba lagi.",
+            "error": "LLM API mengembalikan output kosong. Coba lagi.",
         }), 502
 
     return jsonify({
         "success": True,
         "demo_mode": False,
-        "model": GROQ_MODEL,
+        "model": LLM_MODEL,
         "sections": parse_output(ai_output),
     })
 
