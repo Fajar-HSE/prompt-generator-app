@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_API_URL = os.getenv("LLM_API_URL", "https://autoapp.biz.id/v1/chat/completions")
-LLM_MODEL = os.getenv("LLM_MODEL", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-v4-pro")
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2000"))
 LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "60"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
