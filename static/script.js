@@ -21,6 +21,13 @@
         const REQUIRED_FIELDS = ['programName', 'competency', 'targetAudience'];
         const STORAGE_KEY = 'promptGeneratorHistory';
         const SETTINGS_KEY = 'llmSettings';
+        const PROVIDER_URLS = {
+            'openai': 'https://api.openai.com/v1/chat/completions',
+            'anthropic': 'https://api.anthropic.com/v1/messages',
+            'google': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+            'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
+            'custom': ''
+        };
 
         let savedSinceEdit = true;
 
@@ -28,6 +35,32 @@
             return fetch('/api/settings')
                 .then(res => res.json())
                 .catch(() => ({}));
+        }
+
+        function updateProviderUrl() {
+            const provider = document.getElementById('providerSelect').value;
+            const baseUrlInput = document.getElementById('baseUrl');
+            const modelInput = document.getElementById('llmModel');
+
+            if (provider !== 'custom' && PROVIDER_URLS[provider]) {
+                baseUrlInput.value = PROVIDER_URLS[provider];
+                baseUrlInput.readOnly = true;
+            } else {
+                baseUrlInput.value = '';
+                baseUrlInput.readOnly = false;
+            }
+
+            // Set default model berdasarkan provider
+            const defaultModels = {
+                'openai': 'gpt-4o',
+                'anthropic': 'claude-3-haiku-20240307',
+                'google': 'gemini-pro',
+                'openrouter': 'openai/gpt-4o',
+                'custom': ''
+            };
+            if (!modelInput.value || modelInput.value === 'gpt-4o') {
+                modelInput.value = defaultModels[provider] || '';
+            }
         }
 
         function saveSettingsToServer(settings) {
@@ -38,6 +71,62 @@
             })
                 .then(res => res.json())
                 .catch(() => ({ success: false }));
+        }
+
+        function testConnection() {
+            const provider = document.getElementById('providerSelect').value;
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const model = document.getElementById('llmModel').value.trim();
+
+            if (!baseUrl || !apiKey || !model) {
+                showToast('Mohon lengkapi semua field sebelum test koneksi');
+                return;
+            }
+
+            const resultEl = document.getElementById('testResult');
+            resultEl.textContent = '⏳ Testing koneksi...';
+            resultEl.style.color = '#666';
+
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
+
+            let endpoint = baseUrl;
+            if (provider === 'anthropic') {
+                endpoint = baseUrl;
+            } else if (provider === 'google') {
+                endpoint = baseUrl.replace('/chat/completions', '/messages');
+            }
+
+            const payload = {
+                model: model,
+                messages: [{ role: 'user', content: 'Test' }],
+                max_tokens: 10
+            };
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(payload)
+            })
+                .then(res => {
+                    if (res.ok) {
+                        return res.json();
+                    }
+                    return res.json().then(err => { throw err });
+                })
+                .then(data => {
+                    resultEl.textContent = '✅ Koneksi berhasil!';
+                    resultEl.style.color = '#10b981';
+                    showToast('Koneksi berhasil!');
+                })
+                .catch(err => {
+                    resultEl.textContent = `❌ Koneksi gagal: ${err.message || 'Unknown error'}`;
+                    resultEl.style.color = '#ef4444';
+                    showToast('Koneksi gagal: ' + (err.message || 'Unknown error'));
+                });
         }
         if (form) {
             form.addEventListener('input', function () { savedSinceEdit = false; });
@@ -500,10 +589,25 @@
 
         function openSettings() {
             const settings = getSettings();
-            if (settings.baseUrl) document.getElementById('baseUrl').value = settings.baseUrl;
+            if (settings.baseUrl) {
+                document.getElementById('baseUrl').value = settings.baseUrl;
+                // Try to detect provider from URL
+                if (settings.baseUrl.includes('openai.com')) {
+                    document.getElementById('providerSelect').value = 'openai';
+                } else if (settings.baseUrl.includes('anthropic.com')) {
+                    document.getElementById('providerSelect').value = 'anthropic';
+                } else if (settings.baseUrl.includes('googleapis.com')) {
+                    document.getElementById('providerSelect').value = 'google';
+                } else if (settings.baseUrl.includes('openrouter.ai')) {
+                    document.getElementById('providerSelect').value = 'openrouter';
+                } else {
+                    document.getElementById('providerSelect').value = 'custom';
+                }
+            }
             if (settings.model) document.getElementById('llmModel').value = settings.model;
             if (settings.apiKey) document.getElementById('apiKey').value = settings.apiKey;
             settingsModal.style.display = 'flex';
+            updateProviderUrl();
         }
 
         function closeSettings() {
@@ -527,13 +631,14 @@
                 const baseUrl = document.getElementById('baseUrl').value.trim();
                 const model = document.getElementById('llmModel').value.trim();
                 const apiKey = document.getElementById('apiKey').value.trim();
+                const provider = document.getElementById('providerSelect').value;
 
                 if (!baseUrl || !model || !apiKey) {
                     alert('Semua field wajib diisi!');
                     return;
                 }
 
-                saveSettings({ baseUrl, model, apiKey });
+                saveSettings({ baseUrl, model, apiKey, provider });
                 closeSettings();
                 showToast('Pengaturan berhasil disimpan!');
             });
@@ -545,6 +650,16 @@
                     closeSettings();
                 }
             });
+        }
+
+        const providerSelect = document.getElementById('providerSelect');
+        if (providerSelect) {
+            providerSelect.addEventListener('change', updateProviderUrl);
+        }
+
+        const testConnectionBtn = document.getElementById('testConnectionBtn');
+        if (testConnectionBtn) {
+            testConnectionBtn.addEventListener('click', testConnection);
         }
 
         checkSettings();

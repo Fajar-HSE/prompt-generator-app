@@ -395,6 +395,23 @@ main {
     max-width: 400px;
 }
 .settings-content h2 { margin-bottom: 15px; }
+.btn-secondary {
+    background: #f4f4f4;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover {
+    background: #e4e4e4;
+}
+#testResult {
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
 
 .toast.show {
     opacity: 1;

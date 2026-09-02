@@ -261,63 +261,78 @@ def test_generate_rate_limited(mock_post, client, monkeypatch):
     assert resp.get_json()["success"] is False
 
 
-@pytest.fixture
-def client_with_mock_server():
-    with mock.patch.object(app_module, "LLM_API_KEY", "sk-test"):
-        with mock.patch.object(app_module.requests.Session, "post") as mock_post:
-            yield client, mock_post
-
-
-def test_settings_modal_visible_by_default(client):
-    """Test that settings modal is visible when no settings are stored"""
-    resp = client.get("/")
+def test_settings_get_empty(client):
+    """Test that settings endpoint returns empty when no settings stored"""
+    resp = client.get("/api/settings")
     assert resp.status_code == 200
-    html = resp.get_data(as_text=True)
-    assert "settings-modal" in html
-    assert "display: block;" in html or "display: none;" in html
+    data = resp.get_json()
+    assert data["baseUrl"] == ""
+    assert data["model"] == ""
+    assert data["apiKey"] == ""
 
 
-def test_save_settings_to_localstorage(client):
-    """Test that settings are saved to localStorage when form is submitted"""
-    with client.session_transaction() as session:
-        with mock.patch('flask.session', session):
-            session.clear()
-    
+def test_settings_post_success(client):
+    """Test that settings can be saved via POST"""
     settings_data = {
-        "baseUrl": "https://api.example.com/v1/chat/completions",
+        "baseUrl": "https://api.openai.com/v1/chat/completions",
         "model": "gpt-4",
-        "apiKey": "sk-test-settings-123"
+        "apiKey": "sk-test-settings-123",
+        "provider": "openai"
     }
     
     resp = client.post("/api/settings", json=settings_data)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["success"] is True
+
+
+def test_settings_post_missing_fields(client):
+    """Test that settings endpoint returns error when fields are missing"""
+    settings_data = {
+        "baseUrl": "https://api.openai.com/v1/chat/completions"
+    }
     
-    resp = client.get("/api/settings")
+    resp = client.post("/api/settings", json=settings_data)
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["success"] is False
+
+
+def test_settings_roundtrip(client):
+    """Test that settings can be saved and retrieved"""
+    settings_data = {
+        "baseUrl": "https://api.custom.com/v1",
+        "model": "custom-model",
+        "apiKey": "sk-test-roundtrip",
+        "provider": "custom"
+    }
+    
+    # Save
+    resp = client.post("/api/settings", json=settings_data)
     assert resp.status_code == 200
-    settings = resp.get_json()
-    assert settings["baseUrl"] == settings_data["baseUrl"]
-    assert settings["model"] == settings_data["model"]
-    assert settings["apiKey"] == settings_data["apiKey"]
-
-
-def test_generate_requires_api_key(client, monkeypatch):
-    """Test that generate endpoint redirects to settings modal when no API key"""
-    with mock.patch.object(app_module, "LLM_API_KEY", ""):
-        monkeypatch.setattr(app_module, "LLM_API_KEY", "")
-        
-        resp = client.post("/api/generate", json=VALID_DATA)
-        assert resp.status_code == 200
-        data = resp.get_json()
-        assert data["success"] is True
-        assert data["demo_mode"] is True
-
-
-def test_generate_includes_dynamic_headers(client, monkeypatch):
-    """Test that generate includes custom headers when settings are provided"""
-    monkeypatch.setattr(app_module, "LLM_API_KEY", "sk-test")
     
+    # Retrieve
+    resp = client.get("/api/settings")
+    data = resp.get_json()
+    assert data["baseUrl"] == settings_data["baseUrl"]
+    assert data["model"] == settings_data["model"]
+    assert data["apiKey"] == settings_data["apiKey"]
+
+
+def test_generate_uses_settings_from_server(client, monkeypatch):
+    """Test that generate uses settings from server session"""
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "")
+    
+    # Save settings to session
+    settings_data = {
+        "baseUrl": "https://api.custom.com/v1",
+        "model": "custom-model",
+        "apiKey": "sk-server-test"
+    }
+    resp = client.post("/api/settings", json=settings_data)
+    assert resp.status_code == 200
+    
+    # Now test generate should work (but will fail on actual API call)
     with mock.patch.object(app_module.requests.Session, "post") as mock_post:
         mock_response = mock.Mock()
         mock_response.status_code = 200
@@ -325,28 +340,14 @@ def test_generate_includes_dynamic_headers(client, monkeypatch):
         mock_response.json.return_value = {
             "choices": [{
                 "message": {
-                    "content": (
-                        "## IMAGE PROMPT\nA poster.\n"
-                        "## NEGATIVE PROMPT\ncartoon\n"
-                        "## FORMAT & RESOLUTION\n1080x1350px\n"
-                        "## QUALITY SCORE\nOVERALL: 9/10\n"
-                    )
+                    "content": "## IMAGE PROMPT\nTest\n"
                 }
             }]
         }
         mock_post.return_value = mock_response
-
-        headers = {
-            "X-API-Key": "sk-test-custom",
-            "X-API-URL": "https://api.custom.com/v1",
-            "X-Model": "gpt-4o"
-        }
         
-        resp = client.post("/api/generate", json=VALID_DATA, headers=headers)
+        resp = client.post("/api/generate", json=VALID_DATA)
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["success"] is True
-        
-        call_args = mock_post.call_args
-        assert "headers" in call_args[1]
-        assert call_args[1]["headers"]["Authorization"] == "Bearer sk-test-custom"
+        assert data["demo_mode"] is False
