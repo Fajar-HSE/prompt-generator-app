@@ -11,6 +11,7 @@ from urllib3.util.retry import Retry
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-in-production")
 CORS(app)
 
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
