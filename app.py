@@ -432,6 +432,7 @@ def settings():
             "baseUrl": session.get("llm_base_url", ""),
             "model": session.get("llm_model", ""),
             "apiKey": session.get("llm_api_key", ""),
+            "provider": session.get("llm_provider", "custom"),
         })
     
     data = request.get_json()
@@ -442,8 +443,63 @@ def settings():
     session["llm_base_url"] = data["baseUrl"].strip()
     session["llm_model"] = data["model"].strip()
     session["llm_api_key"] = data["apiKey"].strip()
+    session["llm_provider"] = data.get("provider", "custom")
     
     return jsonify({"success": True})
+
+
+@app.route("/api/test-connection", methods=["POST"])
+def test_connection():
+    data = request.get_json()
+    if not data or "baseUrl" not in data or "apiKey" not in data or "model" not in data:
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+    
+    api_key = data["apiKey"]
+    api_url = data["baseUrl"]
+    api_model = data["model"]
+    provider = data.get("provider", "custom")
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    
+    try:
+        if provider == "anthropic":
+            payload = {
+                "model": api_model,
+                "max_tokens": 10,
+                "messages": [{"role": "user", "content": "Test"}]
+            }
+        else:
+            payload = {
+                "model": api_model,
+                "messages": [{"role": "user", "content": "Test"}],
+                "max_tokens": 10
+            }
+        
+        session = _build_session()
+        response = session.post(api_url, headers=headers, json=payload, timeout=30)
+        
+        if response.status_code == 200:
+            return jsonify({"success": True, "message": "Koneksi berhasil!"})
+        elif response.status_code == 401:
+            return jsonify({"success": False, "message": "API key tidak valid"}), 401
+        elif response.status_code == 429:
+            return jsonify({"success": False, "message": "Rate limit tercapai"}), 429
+        else:
+            try:
+                error_msg = response.json().get("error", {}).get("message", response.text)
+            except:
+                error_msg = response.text
+            return jsonify({"success": False, "message": f"Error {response.status_code}: {error_msg}"}), 500
+            
+    except requests.exceptions.Timeout:
+        return jsonify({"success": False, "message": "Timeout: koneksi ke server LLM gagal"}), 504
+    except requests.exceptions.ConnectionError:
+        return jsonify({"success": False, "message": "Tidak dapat terhubung ke server LLM"}), 502
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
 
 
 if __name__ == "__main__":

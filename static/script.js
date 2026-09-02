@@ -88,42 +88,25 @@
             resultEl.textContent = '⏳ Testing koneksi...';
             resultEl.style.color = '#666';
 
-            const headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            };
-
-            let endpoint = baseUrl;
-            if (provider === 'anthropic') {
-                endpoint = baseUrl;
-            } else if (provider === 'google') {
-                endpoint = baseUrl.replace('/chat/completions', '/messages');
-            }
-
-            const payload = {
-                model: model,
-                messages: [{ role: 'user', content: 'Test' }],
-                max_tokens: 10
-            };
-
-            fetch(endpoint, {
+            fetch('/api/test-connection', {
                 method: 'POST',
-                headers: headers,
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ baseUrl, apiKey, model, provider })
             })
-                .then(res => {
-                    if (res.ok) {
-                        return res.json();
-                    }
-                    return res.json().then(err => { throw err });
-                })
+                .then(res => res.json())
                 .then(data => {
-                    resultEl.textContent = '✅ Koneksi berhasil!';
-                    resultEl.style.color = '#10b981';
-                    showToast('Koneksi berhasil!');
+                    if (data.success) {
+                        resultEl.textContent = '✅ Koneksi berhasil!';
+                        resultEl.style.color = '#10b981';
+                        showToast('Koneksi berhasil!');
+                    } else {
+                        resultEl.textContent = `❌ ${data.message || 'Koneksi gagal'}`;
+                        resultEl.style.color = '#ef4444';
+                        showToast('Koneksi gagal: ' + (data.message || 'Unknown error'));
+                    }
                 })
                 .catch(err => {
-                    resultEl.textContent = `❌ Koneksi gagal: ${err.message || 'Unknown error'}`;
+                    resultEl.textContent = `❌ Error: ${err.message || 'Unknown error'}`;
                     resultEl.style.color = '#ef4444';
                     showToast('Koneksi gagal: ' + (err.message || 'Unknown error'));
                 });

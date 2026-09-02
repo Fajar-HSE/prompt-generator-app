@@ -337,3 +337,49 @@ def test_generate_uses_settings_from_server(client, monkeypatch):
         assert session.get("llm_api_key") == "sk-server-test"
         assert session.get("llm_base_url") == "https://api.custom.com/v1"
         assert session.get("llm_model") == "custom-model"
+
+
+@mock.patch.object(app_module.requests.Session, "post")
+def test_test_connection_success(mock_post, client):
+    """Test that test-connection endpoint works when API responds successfully"""
+    mock_response = mock.Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"choices": [{"message": {"content": "Test"}}]}
+    mock_post.return_value = mock_response
+    
+    resp = client.post("/api/test-connection", json={
+        "baseUrl": "https://api.openai.com/v1/chat/completions",
+        "model": "gpt-4",
+        "apiKey": "sk-test",
+        "provider": "openai"
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+
+
+@mock.patch.object(app_module.requests.Session, "post")
+def test_test_connection_unauthorized(mock_post, client):
+    """Test that test-connection endpoint handles 401 correctly"""
+    mock_response = mock.Mock()
+    mock_response.status_code = 401
+    mock_response.json.return_value = {"error": {"message": "Invalid API key"}}
+    mock_post.return_value = mock_response
+    
+    resp = client.post("/api/test-connection", json={
+        "baseUrl": "https://api.openai.com/v1/chat/completions",
+        "model": "gpt-4",
+        "apiKey": "sk-invalid",
+        "provider": "openai"
+    })
+    assert resp.status_code == 401
+    data = resp.get_json()
+    assert data["success"] is False
+
+
+def test_test_connection_missing_fields(client):
+    """Test that test-connection returns error when fields are missing"""
+    resp = client.post("/api/test-connection", json={
+        "baseUrl": "https://api.openai.com/v1/chat/completions"
+    })
+    assert resp.status_code == 400
