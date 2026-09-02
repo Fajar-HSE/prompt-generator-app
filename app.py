@@ -423,6 +423,34 @@ def status():
     })
 
 
+@app.route("/api/settings", methods=["GET", "POST"])
+def settings():
+    if request.method == "GET":
+        from flask import session
+        return jsonify({
+            "baseUrl": session.get("llm_base_url", ""),
+            "model": session.get("llm_model", ""),
+            "apiKey": session.get("llm_api_key", ""),
+        })
+    
+    data = request.get_json()
+    if not data or "baseUrl" not in data or "model" not in data or "apiKey" not in data:
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+    
+    from flask import session
+    session["llm_base_url"] = data["baseUrl"].strip()
+    session["llm_model"] = data["model"].strip()
+    session["llm_api_key"] = data["apiKey"].strip()
+    
+    return jsonify({"success": True})
+
+
+if __name__ == "__main__":
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    port = int(os.getenv("PORT", "5000"))
+    app.run(debug=debug, host="127.0.0.1", port=port, use_reloader=False)
+
+
 @app.route("/api/generate", methods=["POST"])
 def generate():
     data = request.get_json(silent=True)

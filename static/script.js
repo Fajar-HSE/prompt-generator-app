@@ -23,6 +23,22 @@
         const SETTINGS_KEY = 'llmSettings';
 
         let savedSinceEdit = true;
+
+        function getSettingsFromServer() {
+            return fetch('/api/settings')
+                .then(res => res.json())
+                .catch(() => ({}));
+        }
+
+        function saveSettingsToServer(settings) {
+            return fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            })
+                .then(res => res.json())
+                .catch(() => ({ success: false }));
+        }
         if (form) {
             form.addEventListener('input', function () { savedSinceEdit = false; });
             form.addEventListener('change', function () { savedSinceEdit = false; });
