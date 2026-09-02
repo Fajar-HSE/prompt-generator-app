@@ -423,3 +423,49 @@ def test_generate_handles_403(client, monkeypatch):
         data = resp.get_json()
         assert data["success"] is False
         assert "URL Base salah" in data["error"]
+
+
+@mock.patch.object(app_module.requests.Session, "post")
+def test_generate_url_normalization(mock_post, client, monkeypatch):
+    """Test that generate endpoint normalizes base URLs by appending /chat/completions"""
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "")
+    
+    mock_response = mock.Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": "## IMAGE PROMPT\nTest\n"}}]
+    }
+    mock_post.return_value = mock_response
+    
+    # Test with base URL ending with /v1
+    resp = client.post("/api/generate", json=VALID_DATA, headers={
+        "X-API-Key": "sk-test",
+        "X-API-URL": "https://api.b.ai/v1",
+        "X-Model": "gpt-4"
+    })
+    assert resp.status_code == 200
+    
+    # Verify the URL was normalized
+    call_args = mock_post.call_args
+    assert call_args[0][0] == "https://api.b.ai/v1/chat/completions"
+
+
+@mock.patch.object(app_module.requests.Session, "post")
+def test_test_connection_url_normalization(mock_post, client):
+    """Test that test-connection endpoint also normalizes URLs"""
+    mock_response = mock.Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"message": "OK"}
+    mock_post.return_value = mock_response
+    
+    resp = client.post("/api/test-connection", json={
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "model": "llama-3.1-8b-instant",
+        "apiKey": "sk-test",
+        "provider": "groq"
+    })
+    assert resp.status_code == 200
+    
+    # Verify the URL was normalized
+    call_args = mock_post.call_args
+    assert call_args[0][0] == "https://api.groq.com/openai/v1/chat/completions"

@@ -26,11 +26,26 @@
             'anthropic': 'https://api.anthropic.com/v1/messages',
             'google': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
             'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
+            'together': 'https://api.together.xyz/v1',
+            'groq': 'https://api.groq.com/openai/v1',
+            'mistral': 'https://api.mistral.ai/v1',
+            'deepseek': 'https://api.deepseek.com/v1',
+            'perplexity': 'https://api.perplexity.ai',
             'custom': ''
         };
 
+        const OPENAI_COMPATIBLE_SUFFIXES = [
+            '/chat/completions',
+            '/completions',
+            '/v1/chat/completions',
+            '/v1/completions'
+        ];
+
         const VALID_PATHS = [
             '/v1/chat/completions',
+            '/v1/completions',
+            '/chat/completions',
+            '/completions',
             '/v1/messages',
             '/v1/responses',
             '/v1/models',
@@ -65,6 +80,11 @@
                 'anthropic': 'claude-3-haiku-20240307',
                 'google': 'gemini-pro',
                 'openrouter': 'openai/gpt-4o',
+                'together': 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+                'groq': 'llama-3.1-8b-instant',
+                'mistral': 'mistral-large-latest',
+                'deepseek': 'deepseek-chat',
+                'perplexity': 'sonar',
                 'custom': ''
             };
             if (!modelInput.value || modelInput.value === 'gpt-4o') {
@@ -88,7 +108,21 @@
                 const parsed = new URL(url);
                 if (parsed.protocol !== 'https:') return false;
                 const pathname = parsed.pathname.toLowerCase();
-                return VALID_PATHS.some(path => pathname.endsWith(path));
+                
+                // Check for complete valid paths
+                const hasValidPath = VALID_PATHS.some(path => pathname.endsWith(path));
+                if (hasValidPath) return true;
+                
+                // Check for OpenAI-compatible base URLs (e.g., https://api.b.ai/v1)
+                const isOpenAICompatible = OPENAI_COMPATIBLE_SUFFIXES.some(suffix => 
+                    pathname === suffix || pathname === suffix.replace('/v1', '')
+                );
+                if (isOpenAICompatible) return true;
+                
+                // Accept custom URLs ending with /v1 (common for OpenAI-compatible providers)
+                if (pathname.endsWith('/v1') || pathname.endsWith('/v1/')) return true;
+                
+                return false;
             } catch {
                 return false;
             }
@@ -609,14 +643,25 @@
             if (settings.baseUrl) {
                 document.getElementById('baseUrl').value = settings.baseUrl;
                 // Try to detect provider from URL
-                if (settings.baseUrl.includes('openai.com')) {
+                const url = settings.baseUrl.toLowerCase();
+                if (url.includes('openai.com')) {
                     document.getElementById('providerSelect').value = 'openai';
-                } else if (settings.baseUrl.includes('anthropic.com')) {
+                } else if (url.includes('anthropic.com')) {
                     document.getElementById('providerSelect').value = 'anthropic';
-                } else if (settings.baseUrl.includes('googleapis.com')) {
+                } else if (url.includes('googleapis.com')) {
                     document.getElementById('providerSelect').value = 'google';
-                } else if (settings.baseUrl.includes('openrouter.ai')) {
+                } else if (url.includes('openrouter.ai')) {
                     document.getElementById('providerSelect').value = 'openrouter';
+                } else if (url.includes('together.xyz')) {
+                    document.getElementById('providerSelect').value = 'together';
+                } else if (url.includes('groq.com')) {
+                    document.getElementById('providerSelect').value = 'groq';
+                } else if (url.includes('mistral.ai')) {
+                    document.getElementById('providerSelect').value = 'mistral';
+                } else if (url.includes('deepseek.com')) {
+                    document.getElementById('providerSelect').value = 'deepseek';
+                } else if (url.includes('perplexity.ai')) {
+                    document.getElementById('providerSelect').value = 'perplexity';
                 } else {
                     document.getElementById('providerSelect').value = 'custom';
                 }
@@ -675,8 +720,15 @@
         }
 
         const providerSelect = document.getElementById('providerSelect');
+        // Update provider select options with OpenAI-compatible providers
         if (providerSelect) {
             providerSelect.addEventListener('change', updateProviderUrl);
+        }
+
+        // Add OpenAI-compatible options to custom provider
+        const customOption = document.querySelector('#providerSelect option[value="custom"]');
+        if (customOption) {
+            customOption.textContent = 'Penyedia kustom (OpenAI-compatible)';
         }
 
         const testConnectionBtn = document.getElementById('testConnectionBtn');

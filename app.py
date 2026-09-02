@@ -458,12 +458,17 @@ def test_connection():
     api_url = data["baseUrl"]
     api_model = data["model"]
     provider = data.get("provider", "custom")
-    
+
+    # Normalize URL: if it ends with /v1, append /chat/completions for OpenAI-compatible providers
+    normalized_url = api_url.rstrip('/')
+    if provider not in ["anthropic", "google"] and not normalized_url.endswith(('/chat/completions', '/completions', '/messages', '/responses')):
+        normalized_url += '/chat/completions'
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    
+
     try:
         if provider == "anthropic":
             payload = {
@@ -477,9 +482,9 @@ def test_connection():
                 "messages": [{"role": "user", "content": "Test"}],
                 "max_tokens": 10
             }
-        
+
         session = _build_session()
-        response = session.post(api_url, headers=headers, json=payload, timeout=30)
+        response = session.post(normalized_url, headers=headers, json=payload, timeout=30)
         
         if response.status_code == 200:
             return jsonify({"success": True, "message": "Koneksi berhasil!"})
@@ -530,6 +535,12 @@ def generate():
     api_key = request.headers.get("X-API-Key", "") or LLM_API_KEY
     api_url = request.headers.get("X-API-URL", LLM_API_URL)
     api_model = request.headers.get("X-Model", LLM_MODEL)
+
+    # Normalize URL: if it ends with /v1, append /chat/completions for OpenAI-compatible providers
+    normalized_url = api_url.rstrip('/')
+    if not normalized_url.endswith(('/chat/completions', '/completions', '/messages', '/responses')):
+        normalized_url += '/chat/completions'
+    api_url = normalized_url
 
     if not api_key:
         return jsonify({
