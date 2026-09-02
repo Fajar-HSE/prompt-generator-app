@@ -383,3 +383,43 @@ def test_test_connection_missing_fields(client):
         "baseUrl": "https://api.openai.com/v1/chat/completions"
     })
     assert resp.status_code == 400
+
+
+@mock.patch.object(app_module.requests.Session, "post")
+def test_test_connection_forbidden(mock_post, client):
+    """Test that test-connection handles 403 forbidden correctly"""
+    mock_response = mock.Mock()
+    mock_response.status_code = 403
+    mock_response.json.return_value = {"message": "HTTP node only allows access to inference API paths"}
+    mock_post.return_value = mock_response
+    
+    resp = client.post("/api/test-connection", json={
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "model": "gpt-4",
+        "apiKey": "sk-test",
+        "provider": "openai"
+    })
+    assert resp.status_code == 403
+    data = resp.get_json()
+    assert data["success"] is False
+
+
+def test_generate_handles_403(client, monkeypatch):
+    """Test that generate endpoint handles 403 errors with helpful message"""
+    monkeypatch.setattr(app_module, "LLM_API_KEY", "")
+    
+    with mock.patch.object(app_module.requests.Session, "post") as mock_post:
+        mock_response = mock.Mock()
+        mock_response.status_code = 403
+        mock_response.json.return_value = {"message": "HTTP node only allows access to inference API paths"}
+        mock_post.return_value = mock_response
+        
+        resp = client.post("/api/generate", json=VALID_DATA, headers={
+            "X-API-Key": "sk-test",
+            "X-API-URL": "https://openrouter.ai/api/v1",
+            "X-Model": "gpt-4"
+        })
+        assert resp.status_code == 403
+        data = resp.get_json()
+        assert data["success"] is False
+        assert "URL Base salah" in data["error"]
