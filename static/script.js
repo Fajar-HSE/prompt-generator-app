@@ -29,6 +29,15 @@
             'custom': ''
         };
 
+        const VALID_PATHS = [
+            '/v1/chat/completions',
+            '/v1/messages',
+            '/v1/responses',
+            '/v1/models',
+            '/v1/images/',
+            'generateContent'
+        ];
+
         let savedSinceEdit = true;
 
         function getSettingsFromServer() {
@@ -73,6 +82,18 @@
                 .catch(() => ({ success: false }));
         }
 
+        function isValidApiUrl(url) {
+            if (!url || url.length < 10) return false;
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== 'https:') return false;
+                const pathname = parsed.pathname.toLowerCase();
+                return VALID_PATHS.some(path => pathname.endsWith(path));
+            } catch {
+                return false;
+            }
+        }
+
         function testConnection() {
             const provider = document.getElementById('providerSelect').value;
             const baseUrl = document.getElementById('baseUrl').value.trim();
@@ -81,6 +102,14 @@
 
             if (!baseUrl || !apiKey || !model) {
                 showToast('Mohon lengkapi semua field sebelum test koneksi');
+                return;
+            }
+
+            if (!isValidApiUrl(baseUrl)) {
+                const resultEl = document.getElementById('testResult');
+                resultEl.textContent = '❌ URL tidak valid. Harap gunakan format lengkap:';
+                resultEl.style.color = '#ef4444';
+                showToast('URL Base tidak valid!');
                 return;
             }
 
@@ -100,9 +129,14 @@
                         resultEl.style.color = '#10b981';
                         showToast('Koneksi berhasil!');
                     } else {
-                        resultEl.textContent = `❌ ${data.message || 'Koneksi gagal'}`;
+                        let msg = data.message || 'Koneksi gagal';
+                        // Format error message untuk 403/invalid path
+                        if (msg.includes('HTTP node only allows') || msg.includes('allowed paths')) {
+                            msg = '❌ URL Base salah. Harap gunakan format lengkap:\n- https://openrouter.ai/api/v1/chat/completions\n- https://api.openai.com/v1/chat/completions';
+                        }
+                        resultEl.textContent = msg;
                         resultEl.style.color = '#ef4444';
-                        showToast('Koneksi gagal: ' + (data.message || 'Unknown error'));
+                        showToast('Koneksi gagal');
                     }
                 })
                 .catch(err => {
@@ -618,6 +652,11 @@
 
                 if (!baseUrl || !model || !apiKey) {
                     alert('Semua field wajib diisi!');
+                    return;
+                }
+
+                if (!isValidApiUrl(baseUrl)) {
+                    alert('URL Base tidak valid! Harap gunakan URL lengkap dengan path seperti:\n- https://api.openai.com/v1/chat/completions\n- https://openrouter.ai/api/v1/chat/completions');
                     return;
                 }
 

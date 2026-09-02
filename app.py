@@ -485,6 +485,14 @@ def test_connection():
             return jsonify({"success": True, "message": "Koneksi berhasil!"})
         elif response.status_code == 401:
             return jsonify({"success": False, "message": "API key tidak valid"}), 401
+        elif response.status_code == 403:
+            error_body = {}
+            try:
+                error_body = response.json()
+            except:
+                pass
+            msg = error_body.get("message", "Akses ditolak. Pastikan URL Base sudah benar.")
+            return jsonify({"success": False, "message": msg}), 403
         elif response.status_code == 429:
             return jsonify({"success": False, "message": "Rate limit tercapai"}), 429
         else:
@@ -578,6 +586,15 @@ def generate():
             "success": False,
             "error": "API key tidak valid atau tidak ditemukan. Pastikan LLM_API_KEY sudah di-set di file .env.",
         }), 401
+    if response.status_code == 403:
+        try:
+            detail = response.json().get("message", response.text)
+        except ValueError:
+            detail = response.text
+        return jsonify({
+            "success": False,
+            "error": f"URL Base salah: {detail}",
+        }), 403
     if response.status_code == 429:
         return jsonify({
             "success": False,
