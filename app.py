@@ -4,12 +4,14 @@ import re
 import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_API_URL = os.getenv("LLM_API_URL", "https://api.tokenportal.id/v1/chat/completions")
@@ -412,9 +414,12 @@ def index():
 
 @app.route("/api/status")
 def status():
+    api_key = request.headers.get("X-API-Key", "") or LLM_API_KEY
+    api_url = request.headers.get("X-API-URL", LLM_API_URL)
+    api_model = request.headers.get("X-Model", LLM_MODEL)
     return jsonify({
-        "demo_mode": not bool(LLM_API_KEY),
-        "model": LLM_MODEL,
+        "demo_mode": not bool(api_key),
+        "model": api_model,
     })
 
 
@@ -429,23 +434,27 @@ def generate():
             "fields": errors,
         }), 400
 
-    if not LLM_API_KEY:
+    api_key = request.headers.get("X-API-Key", "") or LLM_API_KEY
+    api_url = request.headers.get("X-API-URL", LLM_API_URL)
+    api_model = request.headers.get("X-Model", LLM_MODEL)
+
+    if not api_key:
         return jsonify({
             "success": True,
             "demo_mode": True,
-            "model": LLM_MODEL,
+            "model": api_model,
             "sections": generate_demo_output(data),
         })
 
     prompt = build_prompt(data)
 
     headers = {
-        "Authorization": f"Bearer {LLM_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
 
     payload = {
-        "model": LLM_MODEL,
+        "model": api_model,
         "messages": [
             {
                 "role": "system",
@@ -462,7 +471,7 @@ def generate():
 
     try:
         session = _build_session()
-        response = session.post(LLM_API_URL, headers=headers, json=payload, timeout=LLM_TIMEOUT)
+        response = session.post(api_url, headers=headers, json=payload, timeout=LLM_TIMEOUT)
     except requests.exceptions.Timeout:
         return jsonify({
             "success": False,

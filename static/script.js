@@ -13,9 +13,14 @@
         const historySection = document.getElementById('historySection');
         const historyContainer = document.getElementById('historyContainer');
         const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsForm = document.getElementById('settingsForm');
+        const showSettingsFooter = document.getElementById('showSettingsFooter');
 
         const REQUIRED_FIELDS = ['programName', 'competency', 'targetAudience'];
         const STORAGE_KEY = 'promptGeneratorHistory';
+        const SETTINGS_KEY = 'llmSettings';
 
         let savedSinceEdit = true;
         if (form) {
@@ -369,13 +374,24 @@
                 return;
             }
 
+            const settings = getSettings();
+            if (!settings.apiKey) {
+                openSettings();
+                return;
+            }
+
             const data = collectFormData();
             setLoading(true);
 
             try {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': settings.apiKey,
+                        'X-API-URL': settings.baseUrl,
+                        'X-Model': settings.model,
+                    },
                     body: JSON.stringify(data),
                 });
 
@@ -447,6 +463,75 @@
             }
         });
 
+        function getSettings() {
+            try {
+                return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveSettings(settings) {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        function checkSettings() {
+            const settings = getSettings();
+            if (!settings.apiKey) {
+                openSettings();
+            }
+        }
+
+        function openSettings() {
+            const settings = getSettings();
+            if (settings.baseUrl) document.getElementById('baseUrl').value = settings.baseUrl;
+            if (settings.model) document.getElementById('llmModel').value = settings.model;
+            if (settings.apiKey) document.getElementById('apiKey').value = settings.apiKey;
+            settingsModal.style.display = 'flex';
+        }
+
+        function closeSettings() {
+            settingsModal.style.display = 'none';
+        }
+
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', openSettings);
+        }
+
+        if (showSettingsFooter) {
+            showSettingsFooter.addEventListener('click', function(e) {
+                e.preventDefault();
+                openSettings();
+            });
+        }
+
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const baseUrl = document.getElementById('baseUrl').value.trim();
+                const model = document.getElementById('llmModel').value.trim();
+                const apiKey = document.getElementById('apiKey').value.trim();
+
+                if (!baseUrl || !model || !apiKey) {
+                    alert('Semua field wajib diisi!');
+                    return;
+                }
+
+                saveSettings({ baseUrl, model, apiKey });
+                closeSettings();
+                showToast('Pengaturan berhasil disimpan!');
+            });
+        }
+
+        if (settingsModal) {
+            settingsModal.addEventListener('click', function(e) {
+                if (e.target === settingsModal) {
+                    closeSettings();
+                }
+            });
+        }
+
+        checkSettings();
         checkStatus();
         loadHistory();
     });

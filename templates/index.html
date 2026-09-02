@@ -5,14 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Creative Director — Prompt Generator</title>
     <meta name="description" content="Generator prompt untuk image-creation (poster, flyer, pamflet, banner, social media) berbasis AI Creative Director.">
-    <meta name="theme-color" content="#0f1117">
+    <meta name="theme-color" content="#ffffff">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <h2>Pengaturan LLM</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" id="baseUrl" placeholder="https://api.openai.com/v1/chat/completions">
+                </div>
+                <div class="form-group">
+                    <label>Model LLM</label>
+                    <input type="text" id="llmModel" placeholder="gpt-4o">
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="password" id="apiKey" placeholder="sk-...">
+                </div>
+                <button type="submit" class="btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
     <a href="#promptForm" class="skip-link">Lewati ke form</a>
     <div class="container">
         <header>
-            <h1>AI Creative Director</h1>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h1>AI Creative Director</h1>
+                <button id="settingsBtn" class="btn-secondary">⚙️ Pengaturan</button>
+            </div>
             <p class="subtitle">Prompt Generator untuk Poster, Flyer, &amp; Materi Training</p>
         </header>
 
@@ -168,8 +192,7 @@
         </main>
 
         <footer>
-            <p>Powered by <a href="https://groq.com" target="_blank">Groq API</a> | AI Creative Director Skill</p>
-            <p class="small">Setup: buat file <code>.env</code> dengan <code>GROQ_API_KEY=sk-...</code></p>
+            <p>Powered by AI Creative Director | <a href="#" id="showSettingsFooter">Pengaturan</a></p>
         </footer>
     </div>
 
